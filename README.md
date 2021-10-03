@@ -1,5 +1,8 @@
-kubesearch
----
+# kubesearch
+
+<img src="https://github.com/kubernetes/community/blob/master/icons/png/control_plane_components/labeled/api-256.png?raw=true" width="100">
+
+----
 
 Fulltext search for Kubernetes
 
