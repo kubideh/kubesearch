@@ -10,6 +10,8 @@ Fulltext search for Kubernetes
 
 ```console
 goreleaser release --snapshot --rm-dist
+go run ./...
+go test -tags=integration ./...
 ```
 
 ## Plan

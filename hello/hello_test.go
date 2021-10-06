@@ -1,4 +1,4 @@
-package main
+package hello
 
 import (
 	"io"
@@ -13,9 +13,7 @@ func TestHello(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "http://localhost/v1/search", nil)
 	writer := httptest.NewRecorder()
 
-	func(writer http.ResponseWriter, request *http.Request) {
-		io.WriteString(writer, "<html><body>Hello World!</body></html>")
-	}(writer, request)
+	Handler(writer, request)
 
 	response := writer.Result()
 	body, _ := io.ReadAll(response.Body)

@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"log"
+	"net/http"
+
+	"github.com/kubideh/kubesearch/hello"
+)
 
 func main() {
-	fmt.Println("Hello World!")
+	log.Println("Hello World!")
+
+	if err := http.ListenAndServe(":8080", http.HandlerFunc(hello.Handler)); err != nil {
+		log.Fatalln(err)
+	}
 }
