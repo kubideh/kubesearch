@@ -6,12 +6,18 @@
 
 Fulltext search for Kubernetes
 
+## Requirements
+
+```console
+brew install go
+brew install goreleaser
+go get github.com/onsi/ginkgo/ginkgo
+```
+
 ## Getting started
 
 ```console
-goreleaser release --snapshot --rm-dist
-go run ./...
-go test -tags=integration ./...
+ginkgo -v ./...
 ```
 
 ## Plan
