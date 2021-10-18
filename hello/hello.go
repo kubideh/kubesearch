@@ -1,3 +1,4 @@
+// Package hello is a TDD starting point. It'll be deleted later.
 package hello
 
 import (
