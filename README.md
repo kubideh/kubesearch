@@ -1,3 +1,5 @@
+![CI](https://github.com/kubideh/kubesearch/actions/workflows/main.yml/badge.svg)
+
 # kubesearch
 
 <img src="https://github.com/kubernetes/community/blob/master/icons/png/control_plane_components/labeled/api-256.png?raw=true" width="100">
