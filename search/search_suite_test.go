@@ -1,4 +1,4 @@
-package hello
+package search
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestHello(t *testing.T) {
+func TestSearch(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Hello Suite")
+	RunSpecs(t, "Search Suite")
 }

@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	_ "github.com/kubideh/kubesearch/hello"
+	_ "github.com/kubideh/kubesearch/search"
 )
 
 func main() {
