@@ -13,13 +13,12 @@ Fulltext search for Kubernetes
 ```console
 brew install go
 brew install goreleaser
-go get github.com/onsi/ginkgo/ginkgo
 ```
 
 ## Getting started
 
 ```console
-ginkgo -v ./...
+go test -v ./...
 ```
 
 ## Plan

@@ -6,72 +6,87 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/fake"
 
-	randomdata "github.com/Pallinder/go-randomdata"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-var _ = Describe("Search", func() {
-
-	Describe("Query the server for an object that doesn't exist", func() {
-		Context("Just searching for a non-existent Pod", func() {
-			It("should return an empty response", func() {
-				server := httptest.NewServer(http.DefaultServeMux)
-				defer server.Close()
-
-				params := url.Values{}
-				params.Add("query", randomdata.SillyName())
-
-				response, err := http.Get(fmt.Sprintf("%s/v1/search?query=%s", server.URL, params.Encode()))
-				Expect(err).ShouldNot(HaveOccurred())
-
-				body, _ := io.ReadAll(response.Body)
-				response.Body.Close()
-
-				Expect(response.StatusCode).To(Equal(http.StatusOK))
-				Expect(response.Header.Get("Content-Type")).To(Equal("application/json; charset=utf-8"))
-				Expect(string(body)).To(Equal(`{}`))
-			})
-		})
+func TestSearch_podByName(t *testing.T) {
+	client = fake.NewSimpleClientset(&corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "flargle",
+			Name:      "blargle",
+		},
 	})
 
-	Describe("Asking the server to say Hello", func() {
-		Context("Just saying Hello", func() {
-			It("should return an empty response", func() {
-				server := httptest.NewServer(http.DefaultServeMux)
-				defer server.Close()
+	server := httptest.NewServer(http.DefaultServeMux)
+	defer server.Close()
 
-				response, err := http.Get(fmt.Sprintf("%s/v1/search", server.URL))
-				Expect(err).ShouldNot(HaveOccurred())
+	params := url.Values{}
+	params.Add("query", "blargle")
 
-				body, _ := io.ReadAll(response.Body)
-				response.Body.Close()
+	response, err := http.Get(fmt.Sprintf("%s/v1/search?%s", server.URL, params.Encode()))
+	require.NoError(t, err)
 
-				Expect(response.StatusCode).To(Equal(http.StatusOK))
-				Expect(response.Header.Get("Content-Type")).To(Equal("application/json; charset=utf-8"))
-				Expect(string(body)).To(Equal(`{}`))
-			})
-		})
+	body, err := io.ReadAll(response.Body)
+	response.Body.Close()
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Equal(t, "application/json; charset=utf-8", response.Header.Get("Content-Type"))
+	assert.Equal(t, `{"kind":"Pods","namespace":"flargle","name":blargle"}`, string(body))
+}
+
+func TestSearch_nonExistentPod(t *testing.T) {
+	client = fake.NewSimpleClientset(&corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "flargle",
+			Name:      "blargle",
+		},
 	})
 
-	Describe("Asking the server to do something else", func() {
-		Context("Testing that the server won't accept other URI paths", func() {
-			It("should return 404", func() {
-				server := httptest.NewServer(http.DefaultServeMux)
-				defer server.Close()
+	server := httptest.NewServer(http.DefaultServeMux)
+	defer server.Close()
 
-				response, err := http.Get(fmt.Sprintf("%s/%s", server.URL, randomdata.SillyName()))
-				Expect(err).ShouldNot(HaveOccurred())
+	params := url.Values{}
+	params.Add("query", "whatever")
 
-				body, _ := io.ReadAll(response.Body)
-				response.Body.Close()
+	response, err := http.Get(fmt.Sprintf("%s/v1/search?%s", server.URL, params.Encode()))
+	require.NoError(t, err)
 
-				Expect(response.StatusCode).To(Equal(http.StatusNotFound))
-				Expect(response.Header.Get("Content-Type")).To(Equal("text/plain; charset=utf-8"))
-				Expect(string(body)).To(Equal("404 page not found\n"))
-			})
-		})
+	body, err := io.ReadAll(response.Body)
+	response.Body.Close()
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Equal(t, "application/json; charset=utf-8", response.Header.Get("Content-Type"))
+	assert.Equal(t, `{}`, string(body))
+}
+
+func TestSearch_missingQuery(t *testing.T) {
+	client = fake.NewSimpleClientset(&corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "flargle",
+			Name:      "blargle",
+		},
 	})
-})
+
+	server := httptest.NewServer(http.DefaultServeMux)
+	defer server.Close()
+
+	response, err := http.Get(fmt.Sprintf("%s/v1/search", server.URL))
+	require.NoError(t, err)
+
+	body, err := io.ReadAll(response.Body)
+	response.Body.Close()
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Equal(t, "application/json; charset=utf-8", response.Header.Get("Content-Type"))
+	assert.Equal(t, `{}`, string(body))
+}
