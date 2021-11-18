@@ -1,3 +1,5 @@
+// Package main provides the CLI entrypoint for kubesearch; nothing
+// else.
 package main
 
 import (

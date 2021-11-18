@@ -1,3 +1,4 @@
+// Package client provides access to a global K8s client.
 package client
 
 import "k8s.io/client-go/kubernetes"
