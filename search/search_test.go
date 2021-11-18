@@ -12,17 +12,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 
+	"github.com/kubideh/kubesearch/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSearch_podByName(t *testing.T) {
-	client = fake.NewSimpleClientset(&corev1.Pod{
+	aClient := fake.NewSimpleClientset(&corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "flargle",
 			Name:      "blargle",
 		},
 	})
+	client.SetClient(aClient)
 
 	server := httptest.NewServer(http.DefaultServeMux)
 	defer server.Close()
@@ -39,16 +41,17 @@ func TestSearch_podByName(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 	assert.Equal(t, "application/json; charset=utf-8", response.Header.Get("Content-Type"))
-	assert.Equal(t, `{"kind":"Pods","namespace":"flargle","name":blargle"}`, string(body))
+	assert.Equal(t, `{"kind":"Pods","namespace":"flargle","name":"blargle"}`, string(body))
 }
 
 func TestSearch_nonExistentPod(t *testing.T) {
-	client = fake.NewSimpleClientset(&corev1.Pod{
+	aClient := fake.NewSimpleClientset(&corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "flargle",
 			Name:      "blargle",
 		},
 	})
+	client.SetClient(aClient)
 
 	server := httptest.NewServer(http.DefaultServeMux)
 	defer server.Close()
@@ -69,12 +72,13 @@ func TestSearch_nonExistentPod(t *testing.T) {
 }
 
 func TestSearch_missingQuery(t *testing.T) {
-	client = fake.NewSimpleClientset(&corev1.Pod{
+	aClient := fake.NewSimpleClientset(&corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "flargle",
 			Name:      "blargle",
 		},
 	})
+	client.SetClient(aClient)
 
 	server := httptest.NewServer(http.DefaultServeMux)
 	defer server.Close()

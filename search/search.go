@@ -7,11 +7,9 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/kubideh/kubesearch/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
-
-var client kubernetes.Interface
 
 func init() {
 	http.HandleFunc("/v1/search", Handler)
@@ -27,7 +25,7 @@ func Handler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	pod, err := client.CoreV1().Pods("flargle").Get(context.TODO(), keys[0], metav1.GetOptions{})
+	pod, err := client.Client().CoreV1().Pods("flargle").Get(context.TODO(), keys[0], metav1.GetOptions{})
 
 	if err != nil {
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -36,5 +34,5 @@ func Handler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-	io.WriteString(writer, fmt.Sprintf(`{"kind":"Pods","namespace":"%s","name":%s"}`, pod.Namespace, pod.Name))
+	io.WriteString(writer, fmt.Sprintf(`{"kind":"Pods","namespace":"%s","name":"%s"}`, pod.Namespace, pod.Name))
 }
