@@ -4,13 +4,14 @@
 package search
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"net/http"
 
-	"github.com/kubideh/kubesearch/client"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/cache"
+	"k8s.io/klog/v2"
 )
 
 func init() {
@@ -27,14 +28,38 @@ func Handler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	pod, err := client.Client().CoreV1().Pods("flargle").Get(context.TODO(), keys[0], metav1.GetOptions{})
+	key, err := cache.MetaNamespaceKeyFunc(
+		&corev1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: "flargle",
+				Name:      keys[0],
+			},
+		},
+	)
 
 	if err != nil {
+		klog.Error(err)
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		io.WriteString(writer, "{}")
 		return
 	}
 
+	item, exists, err := Informer().GetStore().GetByKey(key)
+
+	if err != nil {
+		klog.Error(err)
+		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+		io.WriteString(writer, "{}")
+		return
+	}
+
+	if !exists {
+		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+		io.WriteString(writer, "{}")
+		return
+	}
+
+	pod := item.(*corev1.Pod)
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	io.WriteString(writer, fmt.Sprintf(`{"kind":"Pods","namespace":"%s","name":"%s"}`, pod.Namespace, pod.Name))
 }
