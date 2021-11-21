@@ -4,7 +4,6 @@ package main
 
 import (
 	"flag"
-	"log"
 	"net/http"
 	"path/filepath"
 
@@ -13,6 +12,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"k8s.io/klog/v2"
 )
 
 func main() {
@@ -27,18 +27,18 @@ func main() {
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
-		log.Fatalln(err)
+		klog.Fatalln(err)
 	}
 
 	// create the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		log.Fatalln(err)
+		klog.Fatalln(err)
 	}
 
 	client.SetClient(clientset)
 
 	if err := http.ListenAndServe(":8080", http.DefaultServeMux); err != nil {
-		log.Fatalln(err)
+		klog.Fatalln(err)
 	}
 }
