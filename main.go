@@ -39,11 +39,10 @@ func main() {
 
 	// create the informer to be used by the search API handler
 	informerFactory := informers.NewSharedInformerFactory(clientset, 0)
-	search.SetInformer(informerFactory.Core().V1().Pods().Informer())
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	informerFactory.Start(ctx.Done())
+	search.SetInformer(informerFactory.Core().V1().Pods().Informer())
 
 	if err := http.ListenAndServe(":8080", http.DefaultServeMux); err != nil {
 		klog.Fatalln(err)

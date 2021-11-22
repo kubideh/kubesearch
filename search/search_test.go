@@ -19,17 +19,15 @@ import (
 )
 
 func TestSearch_podByName(t *testing.T) {
+	client := fake.NewSimpleClientset()
+	informerFactory := informers.NewSharedInformerFactory(client, 0)
+	podInformer := informerFactory.Core().V1().Pods().Informer()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	aClient := fake.NewSimpleClientset()
-
-	informerFactory := informers.NewSharedInformerFactory(aClient, 0)
-	podInformer := informerFactory.Core().V1().Pods().Informer()
-	SetInformer(podInformer)
 	informerFactory.Start(ctx.Done())
+	SetInformer(podInformer)
 
-	_, err := aClient.CoreV1().Pods("flargle").Create(
+	_, err := client.CoreV1().Pods("flargle").Create(
 		context.TODO(),
 		&corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
@@ -59,17 +57,15 @@ func TestSearch_podByName(t *testing.T) {
 }
 
 func TestSearch_nonExistentPod(t *testing.T) {
+	client := fake.NewSimpleClientset()
+	informerFactory := informers.NewSharedInformerFactory(client, 0)
+	podInformer := informerFactory.Core().V1().Pods().Informer()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	aClient := fake.NewSimpleClientset()
-
-	informerFactory := informers.NewSharedInformerFactory(aClient, 0)
-	podInformer := informerFactory.Core().V1().Pods().Informer()
-	SetInformer(podInformer)
 	informerFactory.Start(ctx.Done())
+	SetInformer(podInformer)
 
-	_, err := aClient.CoreV1().Pods("flargle").Create(
+	_, err := client.CoreV1().Pods("flargle").Create(
 		context.TODO(),
 		&corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
@@ -99,17 +95,15 @@ func TestSearch_nonExistentPod(t *testing.T) {
 }
 
 func TestSearch_missingQuery(t *testing.T) {
+	client := fake.NewSimpleClientset()
+	informerFactory := informers.NewSharedInformerFactory(client, 0)
+	podInformer := informerFactory.Core().V1().Pods().Informer()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	aClient := fake.NewSimpleClientset()
-
-	informerFactory := informers.NewSharedInformerFactory(aClient, 0)
-	podInformer := informerFactory.Core().V1().Pods().Informer()
-	SetInformer(podInformer)
 	informerFactory.Start(ctx.Done())
+	SetInformer(podInformer)
 
-	_, err := aClient.CoreV1().Pods("flargle").Create(
+	_, err := client.CoreV1().Pods("flargle").Create(
 		context.TODO(),
 		&corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
