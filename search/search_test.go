@@ -18,12 +18,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSearch_podByName(t *testing.T) {
+func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
 	client := fake.NewSimpleClientset()
+
 	informerFactory := informers.NewSharedInformerFactory(client, 0)
 	podInformer := informerFactory.Core().V1().Pods().Informer()
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	informerFactory.Start(ctx.Done())
 	SetInformer(podInformer)
 
@@ -39,7 +39,14 @@ func TestSearch_podByName(t *testing.T) {
 	require.NoError(t, err)
 
 	server := httptest.NewServer(http.DefaultServeMux)
+
+	return server, cancel
+}
+
+func TestSearch_podByName(t *testing.T) {
+	server, cancel := setup(t)
 	defer server.Close()
+	defer cancel()
 
 	params := url.Values{}
 	params.Add("query", "blargle")
@@ -57,27 +64,9 @@ func TestSearch_podByName(t *testing.T) {
 }
 
 func TestSearch_nonExistentPod(t *testing.T) {
-	client := fake.NewSimpleClientset()
-	informerFactory := informers.NewSharedInformerFactory(client, 0)
-	podInformer := informerFactory.Core().V1().Pods().Informer()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	informerFactory.Start(ctx.Done())
-	SetInformer(podInformer)
-
-	_, err := client.CoreV1().Pods("flargle").Create(
-		context.TODO(),
-		&corev1.Pod{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "blargle",
-			},
-		},
-		metav1.CreateOptions{},
-	)
-	require.NoError(t, err)
-
-	server := httptest.NewServer(http.DefaultServeMux)
+	server, cancel := setup(t)
 	defer server.Close()
+	defer cancel()
 
 	params := url.Values{}
 	params.Add("query", "whatever")
@@ -95,27 +84,9 @@ func TestSearch_nonExistentPod(t *testing.T) {
 }
 
 func TestSearch_missingQuery(t *testing.T) {
-	client := fake.NewSimpleClientset()
-	informerFactory := informers.NewSharedInformerFactory(client, 0)
-	podInformer := informerFactory.Core().V1().Pods().Informer()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	informerFactory.Start(ctx.Done())
-	SetInformer(podInformer)
-
-	_, err := client.CoreV1().Pods("flargle").Create(
-		context.TODO(),
-		&corev1.Pod{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "blargle",
-			},
-		},
-		metav1.CreateOptions{},
-	)
-	require.NoError(t, err)
-
-	server := httptest.NewServer(http.DefaultServeMux)
+	server, cancel := setup(t)
 	defer server.Close()
+	defer cancel()
 
 	response, err := http.Get(fmt.Sprintf("%s/v1/search", server.URL))
 	require.NoError(t, err)
