@@ -9,8 +9,6 @@ import (
 	"net/http"
 
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 )
 
@@ -20,25 +18,17 @@ func init() {
 
 // Handler is an http.HandlerFunc that responds with just "Hello World!".
 func Handler(writer http.ResponseWriter, request *http.Request) {
-	keys, ok := request.URL.Query()["query"]
+	values, ok := request.URL.Query()["query"]
 
-	if !ok || keys[0] == "" {
+	if !ok || values[0] == "" {
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		io.WriteString(writer, "{}")
 		return
 	}
 
-	key, err := cache.MetaNamespaceKeyFunc(
-		&corev1.Pod{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: "flargle",
-				Name:      keys[0],
-			},
-		},
-	)
+	key, found := Index()[values[0]]
 
-	if err != nil {
-		klog.Error(err)
+	if !found {
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		io.WriteString(writer, "{}")
 		return
