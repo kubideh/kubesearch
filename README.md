@@ -1,4 +1,5 @@
-![CI](https://github.com/kubideh/kubesearch/actions/workflows/main.yml/badge.svg)
+<a href="https://github.com/kubideh/kubesearch/actions/workflows/main.yml"><img src="https://github.com/kubideh/kubesearch/actions/workflows/main.yml/badge.svg"/></a>
+<a href="https://github.com/kubideh/kubesearch/actions/workflows/codeql-analysis.yml"><img src="https://github.com/kubideh/kubesearch/actions/workflows/codeql-analysis.yml/badge.svg"/></a>
 
 # kubesearch
 
