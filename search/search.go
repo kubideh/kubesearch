@@ -14,7 +14,7 @@ import (
 )
 
 // Handler is an http.HandlerFunc that responds with just "Hello World!".
-func Handler(index InvertedIndex, store cache.Store) func(http.ResponseWriter, *http.Request) {
+func Handler(index *InvertedIndex, store cache.Store) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		values, ok := request.URL.Query()["query"]
 
@@ -23,7 +23,7 @@ func Handler(index InvertedIndex, store cache.Store) func(http.ResponseWriter, *
 			return
 		}
 
-		key, found := index[values[0]]
+		key, found := index.Get(values[0])
 
 		if !found {
 			writeEmptyOutput(writer)

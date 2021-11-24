@@ -41,6 +41,8 @@ func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
 }
 
 func TestSearch_podByName(t *testing.T) {
+	t.Parallel()
+
 	server, cancel := setup(t)
 	defer server.Close()
 	defer cancel()
@@ -61,6 +63,8 @@ func TestSearch_podByName(t *testing.T) {
 }
 
 func TestSearch_nonExistentPod(t *testing.T) {
+	t.Parallel()
+
 	server, cancel := setup(t)
 	defer server.Close()
 	defer cancel()
@@ -81,6 +85,8 @@ func TestSearch_nonExistentPod(t *testing.T) {
 }
 
 func TestSearch_missingQuery(t *testing.T) {
+	t.Parallel()
+
 	server, cancel := setup(t)
 	defer server.Close()
 	defer cancel()
