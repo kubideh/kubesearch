@@ -16,7 +16,6 @@ type Controller struct {
 	informerFactory informers.SharedInformerFactory
 	informer        cache.SharedIndexInformer
 	queue           workqueue.RateLimitingInterface
-	index           InvertedIndex
 }
 
 // Store returns the object store.
@@ -24,15 +23,10 @@ func (c *Controller) Store() cache.Store {
 	return c.informer.GetStore()
 }
 
-// Index returns a reference to the inverted search index.
-func (c *Controller) Index() InvertedIndex {
-	return c.index
-}
-
 // Start this controller. The caller should defer the call to the
 // return cancel function.
-func (c *Controller) Start() context.CancelFunc {
-	go indexObjects(c.queue, c.index)
+func (c *Controller) Start(index InvertedIndex) context.CancelFunc {
+	go indexObjects(c.queue, index)
 	ctx, cancel := context.WithCancel(context.Background())
 	c.informerFactory.Start(ctx.Done())
 	return cancel
@@ -43,13 +37,11 @@ func NewController(client kubernetes.Interface) *Controller {
 	factory := informers.NewSharedInformerFactory(client, 0)
 	queue := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "pod-queue")
 	informer := newPodInformer(factory, queue)
-	index := NewIndex()
 
 	return &Controller{
 		informerFactory: factory,
 		informer:        informer,
 		queue:           queue,
-		index:           index,
 	}
 }
 

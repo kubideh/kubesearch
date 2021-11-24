@@ -37,11 +37,13 @@ func main() {
 
 	// create the Controller to be used by the search API handler
 	controller := search.NewController(client)
-	cancel := controller.Start()
-	defer cancel()
-
-	search.SetIndex(controller.Index())
 	search.SetStore(controller.Store())
+
+	index := search.NewIndex()
+	search.SetIndex(index)
+
+	cancel := controller.Start(index)
+	defer cancel()
 
 	klog.Infoln("Listening on :8080")
 	if err := http.ListenAndServe(":8080", http.DefaultServeMux); err != nil {
