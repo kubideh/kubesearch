@@ -21,8 +21,6 @@ func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
 	client := fake.NewSimpleClientset()
 	controller := NewController(client)
 	index := NewIndex()
-	SetIndex(index)
-	SetStore(controller.informer.GetStore())
 
 	_, err := client.CoreV1().Pods("flargle").Create(
 		context.TODO(),
@@ -35,7 +33,9 @@ func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
 	)
 	require.NoError(t, err)
 
-	server := httptest.NewServer(http.DefaultServeMux)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/search", Handler(index, controller.informer.GetStore()))
+	server := httptest.NewServer(mux)
 
 	return server, controller.Start(index)
 }
