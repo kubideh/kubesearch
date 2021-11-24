@@ -11,28 +11,17 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes/fake"
-	"k8s.io/client-go/util/workqueue"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
-	index := NewIndex()
-	podQueue := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "pod-queue")
-	go IndexObjects(podQueue, index)
-
 	client := fake.NewSimpleClientset()
-
-	informerFactory := informers.NewSharedInformerFactory(client, 0)
-	podInformer := NewPodInformer(informerFactory, podQueue)
-	controller := NewController(podInformer, podQueue, index)
+	controller := NewController(client)
 	SetControllerRef(controller)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	informerFactory.Start(ctx.Done())
+	cancel := controller.Start()
 
 	_, err := client.CoreV1().Pods("flargle").Create(
 		context.TODO(),

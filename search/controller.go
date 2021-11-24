@@ -1,9 +1,11 @@
 package search
 
 import (
+	"context"
 	"strings"
 
 	"k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog/v2"
@@ -11,17 +13,43 @@ import (
 
 // Controller is an informer, a workqueue, and an inverted index.
 type Controller struct {
-	informer cache.SharedIndexInformer
-	queue    workqueue.RateLimitingInterface
-	index    InvertedIndex
+	informerFactory informers.SharedInformerFactory
+	informer        cache.SharedIndexInformer
+	queue           workqueue.RateLimitingInterface
+	index           InvertedIndex
+}
+
+// GetPodByKey returns the pod for the given key.
+func (c *Controller) GetPodByKey(key string) (item interface{}, exists bool, err error) {
+	return c.informer.GetStore().GetByKey(key)
+}
+
+// Index returns a reference to the inverted search index.
+func (c *Controller) Index() InvertedIndex {
+	return c.index
+}
+
+// Start this controller. The caller should defer the call to the
+// return cancel function.
+func (c *Controller) Start() context.CancelFunc {
+	go indexObjects(c.queue, c.index)
+	ctx, cancel := context.WithCancel(context.Background())
+	c.informerFactory.Start(ctx.Done())
+	return cancel
 }
 
 // NewController returns Controller objects.
-func NewController(podInformer cache.SharedIndexInformer, podQueue workqueue.RateLimitingInterface, index InvertedIndex) *Controller {
+func NewController(client kubernetes.Interface) *Controller {
+	factory := informers.NewSharedInformerFactory(client, 0)
+	queue := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "pod-queue")
+	informer := newPodInformer(factory, queue)
+	index := NewIndex()
+
 	return &Controller{
-		informer: podInformer,
-		queue:    podQueue,
-		index:    index,
+		informerFactory: factory,
+		informer:        informer,
+		queue:           queue,
+		index:           index,
 	}
 }
 
@@ -37,9 +65,8 @@ func SetControllerRef(controller *Controller) {
 	singletonController = controller
 }
 
-// IndexObjects indexes the objects taken from the given queue.
-func IndexObjects(podQueue workqueue.RateLimitingInterface, index InvertedIndex) {
-	key, shutdown := podQueue.Get()
+func indexObjects(queue workqueue.RateLimitingInterface, index InvertedIndex) {
+	key, shutdown := queue.Get()
 	for !shutdown {
 		var name string
 
@@ -52,23 +79,22 @@ func IndexObjects(podQueue workqueue.RateLimitingInterface, index InvertedIndex)
 
 		index[name] = key.(string)
 
-		key, shutdown = podQueue.Get()
+		key, shutdown = queue.Get()
 	}
-	klog.Info("Shutting down pod-queue")
+	klog.Infoln("Shutting down pod-queue")
 }
 
-// NewPodInformer returns informers for Pods.
-func NewPodInformer(informerFactory informers.SharedInformerFactory, podQueue workqueue.RateLimitingInterface) cache.SharedIndexInformer {
-	podInformer := informerFactory.Core().V1().Pods().Informer()
-	podInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+func newPodInformer(informerFactory informers.SharedInformerFactory, queue workqueue.RateLimitingInterface) cache.SharedIndexInformer {
+	informer := informerFactory.Core().V1().Pods().Informer()
+	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			key, err := cache.MetaNamespaceKeyFunc(obj)
 			if err != nil {
-				klog.Error(err)
+				klog.Errorln(err)
 			} else {
-				podQueue.Add(key)
+				queue.Add(key)
 			}
 		},
 	})
-	return podInformer
+	return informer
 }

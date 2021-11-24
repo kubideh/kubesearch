@@ -21,35 +21,36 @@ func Handler(writer http.ResponseWriter, request *http.Request) {
 	values, ok := request.URL.Query()["query"]
 
 	if !ok || values[0] == "" {
-		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-		io.WriteString(writer, "{}")
+		writeEmptyOutput(writer)
 		return
 	}
 
-	key, found := ControllerRef().index[values[0]]
+	key, found := ControllerRef().Index()[values[0]]
 
 	if !found {
-		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-		io.WriteString(writer, "{}")
+		writeEmptyOutput(writer)
 		return
 	}
 
-	item, exists, err := ControllerRef().informer.GetStore().GetByKey(key)
+	item, exists, err := ControllerRef().GetPodByKey(key)
 
 	if err != nil {
-		klog.Error(err)
-		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-		io.WriteString(writer, "{}")
+		klog.Errorln(err)
+		writeEmptyOutput(writer)
 		return
 	}
 
 	if !exists {
-		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-		io.WriteString(writer, "{}")
+		writeEmptyOutput(writer)
 		return
 	}
 
 	pod := item.(*corev1.Pod)
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	io.WriteString(writer, fmt.Sprintf(`{"kind":"Pods","namespace":"%s","name":"%s"}`, pod.Namespace, pod.Name))
+}
+
+func writeEmptyOutput(writer http.ResponseWriter) {
+	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+	io.WriteString(writer, "{}")
 }
