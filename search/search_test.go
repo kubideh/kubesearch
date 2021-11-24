@@ -34,7 +34,7 @@ func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
 	require.NoError(t, err)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v1/search", Handler(index, controller.informer.GetStore()))
+	RegisterHandler(mux, index, controller.Store())
 	server := httptest.NewServer(mux)
 
 	return server, controller.Start(index)

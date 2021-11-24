@@ -13,6 +13,11 @@ import (
 	"k8s.io/klog/v2"
 )
 
+// RegisterHandler registers the search API handler with the given mux.
+func RegisterHandler(mux *http.ServeMux, index *InvertedIndex, store cache.Store) {
+	mux.HandleFunc("/v1/search", Handler(index, store))
+}
+
 // Handler is an http.HandlerFunc that responds with just "Hello World!".
 func Handler(index *InvertedIndex, store cache.Store) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {

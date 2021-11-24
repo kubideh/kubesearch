@@ -8,12 +8,14 @@ type InvertedIndex struct {
 	mutex sync.RWMutex
 }
 
+// Put adds a docID to the search index.
 func (idx *InvertedIndex) Put(term, docID string) {
 	idx.mutex.Lock()
 	defer idx.mutex.Unlock()
 	idx.index[term] = docID
 }
 
+// Get looks up a docID in the search index.
 func (idx *InvertedIndex) Get(term string) (string, bool) {
 	idx.mutex.RLock()
 	defer idx.mutex.RUnlock()

@@ -44,7 +44,7 @@ func main() {
 	defer cancel()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v1/search", search.Handler(index, controller.Store()))
+	search.RegisterHandler(mux, index, controller.Store())
 
 	klog.Infoln("Listening on :8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
