@@ -9,11 +9,32 @@ import (
 	"net/http"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 )
 
 func init() {
 	http.HandleFunc("/v1/search", Handler)
+}
+
+var singletonInvertedIndex InvertedIndex
+
+func SetIndex(index InvertedIndex) {
+	singletonInvertedIndex = index
+}
+
+func Index() InvertedIndex {
+	return singletonInvertedIndex
+}
+
+var singletonStore cache.Store
+
+func SetStore(store cache.Store) {
+	singletonStore = store
+}
+
+func Store() cache.Store {
+	return singletonStore
 }
 
 // Handler is an http.HandlerFunc that responds with just "Hello World!".
@@ -25,14 +46,14 @@ func Handler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	key, found := ControllerRef().Index()[values[0]]
+	key, found := Index()[values[0]]
 
 	if !found {
 		writeEmptyOutput(writer)
 		return
 	}
 
-	item, exists, err := ControllerRef().GetPodByKey(key)
+	item, exists, err := Store().GetByKey(key)
 
 	if err != nil {
 		klog.Errorln(err)

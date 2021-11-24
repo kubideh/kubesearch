@@ -17,11 +17,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
+func setup(t *testing.T) (*httptest.Server, *Controller) {
 	client := fake.NewSimpleClientset()
 	controller := NewController(client)
-	SetControllerRef(controller)
-	cancel := controller.Start()
+	SetIndex(controller.Index())
+	SetStore(controller.informer.GetStore())
 
 	_, err := client.CoreV1().Pods("flargle").Create(
 		context.TODO(),
@@ -36,12 +36,14 @@ func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
 
 	server := httptest.NewServer(http.DefaultServeMux)
 
-	return server, cancel
+	return server, controller
 }
 
 func TestSearch_podByName(t *testing.T) {
-	server, cancel := setup(t)
+	server, controller := setup(t)
 	defer server.Close()
+
+	cancel := controller.Start()
 	defer cancel()
 
 	params := url.Values{}
@@ -60,8 +62,10 @@ func TestSearch_podByName(t *testing.T) {
 }
 
 func TestSearch_nonExistentPod(t *testing.T) {
-	server, cancel := setup(t)
+	server, controller := setup(t)
 	defer server.Close()
+
+	cancel := controller.Start()
 	defer cancel()
 
 	params := url.Values{}
@@ -80,8 +84,10 @@ func TestSearch_nonExistentPod(t *testing.T) {
 }
 
 func TestSearch_missingQuery(t *testing.T) {
-	server, cancel := setup(t)
+	server, controller := setup(t)
 	defer server.Close()
+
+	cancel := controller.Start()
 	defer cancel()
 
 	response, err := http.Get(fmt.Sprintf("%s/v1/search", server.URL))

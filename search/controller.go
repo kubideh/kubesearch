@@ -19,9 +19,9 @@ type Controller struct {
 	index           InvertedIndex
 }
 
-// GetPodByKey returns the pod for the given key.
-func (c *Controller) GetPodByKey(key string) (item interface{}, exists bool, err error) {
-	return c.informer.GetStore().GetByKey(key)
+// Store returns the object store.
+func (c *Controller) Store() cache.Store {
+	return c.informer.GetStore()
 }
 
 // Index returns a reference to the inverted search index.
@@ -51,18 +51,6 @@ func NewController(client kubernetes.Interface) *Controller {
 		queue:           queue,
 		index:           index,
 	}
-}
-
-var singletonController *Controller
-
-// ControllerRef returns the global K8s Controller.
-func ControllerRef() *Controller {
-	return singletonController
-}
-
-// SetControllerRef replaces the global K8s Controller.
-func SetControllerRef(controller *Controller) {
-	singletonController = controller
 }
 
 func indexObjects(queue workqueue.RateLimitingInterface, index InvertedIndex) {
