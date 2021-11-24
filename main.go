@@ -7,12 +7,10 @@ import (
 	"flag"
 	"net/http"
 	"path/filepath"
-	"strings"
 
 	"github.com/kubideh/kubesearch/search"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 	"k8s.io/client-go/util/workqueue"
@@ -41,44 +39,15 @@ func main() {
 	}
 
 	// create a workqueue and index to be used by the seach API handler
-	index := make(map[string]string)
-	search.SetIndex(index)
-
+	index := search.NewIndex()
 	podQueue := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "pod-queue")
-	go func(podQueue workqueue.RateLimitingInterface) {
-		key, shutdown := podQueue.Get()
-		for !shutdown {
-			var name string
-
-			metadata := strings.Split(key.(string), "/")
-			if len(metadata) == 1 {
-				name = metadata[0]
-			} else {
-				name = metadata[1]
-			}
-
-			index[name] = key.(string)
-
-			key, shutdown = podQueue.Get()
-		}
-		klog.Info("Shutting down pod-queue")
-	}(podQueue)
+	go search.IndexObjects(podQueue, index)
 
 	// create the informer to be used by the search API handler
 	informerFactory := informers.NewSharedInformerFactory(clientset, 0)
-
-	podInformer := informerFactory.Core().V1().Pods().Informer()
-	podInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			key, err := cache.MetaNamespaceKeyFunc(obj)
-			if err != nil {
-				klog.Error(err)
-			} else {
-				podQueue.Add(key)
-			}
-		},
-	})
-	search.SetInformer(podInformer)
+	podInformer := search.NewPodInformer(informerFactory, podQueue)
+	controller := search.NewController(podInformer, podQueue, index)
+	search.SetControllerRef(controller)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

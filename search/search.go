@@ -26,7 +26,7 @@ func Handler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	key, found := Index()[values[0]]
+	key, found := ControllerRef().index[values[0]]
 
 	if !found {
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -34,7 +34,7 @@ func Handler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	item, exists, err := Informer().GetStore().GetByKey(key)
+	item, exists, err := ControllerRef().informer.GetStore().GetByKey(key)
 
 	if err != nil {
 		klog.Error(err)

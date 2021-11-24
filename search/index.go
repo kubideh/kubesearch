@@ -1,13 +1,9 @@
 package search
 
-var singletonIndex map[string]string
+// InvertedIndex maps terms to object keys.
+type InvertedIndex map[string]string
 
-// Index returns the global pod search index.
-func Index() map[string]string {
-	return singletonIndex
-}
-
-// SetIndex replaces the global pod search index.
-func SetIndex(index map[string]string) {
-	singletonIndex = index
+// NewIndex returns a Index objects.
+func NewIndex() InvertedIndex {
+	return make(InvertedIndex)
 }

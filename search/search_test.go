@@ -7,61 +7,29 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"strings"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes/fake"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
-	"k8s.io/klog/v2"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
-	index := make(map[string]string)
-	SetIndex(index)
-
+	index := NewIndex()
 	podQueue := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "pod-queue")
-	go func(podQueue workqueue.RateLimitingInterface) {
-		key, shutdown := podQueue.Get()
-		for !shutdown {
-			var name string
-
-			metadata := strings.Split(key.(string), "/")
-			if len(metadata) == 1 {
-				name = metadata[0]
-			} else {
-				name = metadata[1]
-			}
-
-			index[name] = key.(string)
-
-			key, shutdown = podQueue.Get()
-		}
-		klog.Info("Shutting down pod-queue")
-	}(podQueue)
+	go IndexObjects(podQueue, index)
 
 	client := fake.NewSimpleClientset()
 
 	informerFactory := informers.NewSharedInformerFactory(client, 0)
-
-	podInformer := informerFactory.Core().V1().Pods().Informer()
-	podInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			key, err := cache.MetaNamespaceKeyFunc(obj)
-			if err != nil {
-				klog.Error(err)
-			} else {
-				podQueue.Add(key)
-			}
-		},
-	})
-	SetInformer(podInformer)
+	podInformer := NewPodInformer(informerFactory, podQueue)
+	controller := NewController(podInformer, podQueue, index)
+	SetControllerRef(controller)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	informerFactory.Start(ctx.Done())
