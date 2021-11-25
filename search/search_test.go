@@ -20,6 +20,7 @@ import (
 
 type testSearchCase struct {
 	name   string
+	pod    *corev1.Pod
 	params string
 	result string
 }
@@ -27,22 +28,57 @@ type testSearchCase struct {
 func TestSearch(t *testing.T) {
 	cases := []testSearchCase{
 		{
-			name:   "search for pod by name",
+			name: "search for pod by name",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "blargle",
+					Namespace: "flargle",
+				},
+			},
 			params: "query=blargle",
 			result: `{"kind":"Pods","namespace":"flargle","name":"blargle"}`,
 		},
 		{
-			name:   "search for missing object",
+			name: "search for pod by namespace",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "blargle",
+					Namespace: "flargle",
+				},
+			},
+			params: "query=flargle",
+			result: `{"kind":"Pods","namespace":"flargle","name":"blargle"}`,
+		},
+		{
+			name: "search for missing object",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "blargle",
+					Namespace: "flargle",
+				},
+			},
 			params: "query=whatever",
 			result: `{}`,
 		},
 		{
-			name:   "search using empty query",
+			name: "search using empty query",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "blargle",
+					Namespace: "flargle",
+				},
+			},
 			params: "query=",
 			result: `{}`,
 		},
 		{
-			name:   "search with missing query param",
+			name: "search with missing query param",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "blargle",
+					Namespace: "flargle",
+				},
+			},
 			params: "",
 			result: `{}`,
 		},
@@ -69,15 +105,7 @@ func testSearch(t *testing.T, c testSearchCase) {
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
-	_, err := client.CoreV1().Pods("flargle").Create(
-		context.TODO(),
-		&corev1.Pod{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "blargle",
-			},
-		},
-		metav1.CreateOptions{},
-	)
+	_, err := client.CoreV1().Pods(c.pod.GetNamespace()).Create(context.TODO(), c.pod, metav1.CreateOptions{})
 	require.NoError(t, err)
 
 	params := url.Values{}

@@ -49,13 +49,18 @@ func NewController(client kubernetes.Interface) *Controller {
 func indexObjects(queue workqueue.RateLimitingInterface, index *InvertedIndex) {
 	key, shutdown := queue.Get()
 	for !shutdown {
-		var name string
+		var namespace, name string
 
 		metadata := strings.Split(key.(string), "/")
 		if len(metadata) == 1 {
 			name = metadata[0]
 		} else {
+			namespace = metadata[0]
 			name = metadata[1]
+		}
+
+		if namespace != "" {
+			index.Put(namespace, key.(string))
 		}
 
 		index.Put(name, key.(string))
