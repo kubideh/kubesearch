@@ -29,6 +29,7 @@ func (c *Controller) Start(index *InvertedIndex) context.CancelFunc {
 	go indexObjects(c.queue, index)
 	ctx, cancel := context.WithCancel(context.Background())
 	c.informerFactory.Start(ctx.Done())
+	c.informerFactory.WaitForCacheSync(ctx.Done())
 	return cancel
 }
 
