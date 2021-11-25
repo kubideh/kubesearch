@@ -18,29 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
-	client := fake.NewSimpleClientset()
-	controller := NewController(client)
-	index := NewIndex()
-
-	_, err := client.CoreV1().Pods("flargle").Create(
-		context.TODO(),
-		&corev1.Pod{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "blargle",
-			},
-		},
-		metav1.CreateOptions{},
-	)
-	require.NoError(t, err)
-
-	mux := http.NewServeMux()
-	RegisterHandler(mux, index, controller.Store())
-	server := httptest.NewServer(mux)
-
-	return server, controller.Start(index)
-}
-
 type testSearchCase struct {
 	name   string
 	params string
@@ -77,9 +54,31 @@ func TestSearch(t *testing.T) {
 }
 
 func testSearch(t *testing.T, c testSearchCase) {
-	server, cancel := setup(t)
-	defer server.Close()
+	client := fake.NewSimpleClientset()
+
+	controller := NewController(client)
+
+	index := NewIndex()
+
+	cancel := controller.Start(index)
 	defer cancel()
+
+	mux := http.NewServeMux()
+	RegisterHandler(mux, index, controller.Store())
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	_, err := client.CoreV1().Pods("flargle").Create(
+		context.TODO(),
+		&corev1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "blargle",
+			},
+		},
+		metav1.CreateOptions{},
+	)
+	require.NoError(t, err)
 
 	params := url.Values{}
 	if c.params != "" {
