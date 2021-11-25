@@ -1,5 +1,6 @@
-<a href="https://github.com/kubideh/kubesearch/actions/workflows/main.yml"><img src="https://github.com/kubideh/kubesearch/actions/workflows/main.yml/badge.svg"/></a>
-<a href="https://github.com/kubideh/kubesearch/actions/workflows/codeql-analysis.yml"><img src="https://github.com/kubideh/kubesearch/actions/workflows/codeql-analysis.yml/badge.svg"/></a>
+[![CI Workflow](https://github.com/kubideh/kubesearch/actions/workflows/main.yml/badge.svg)](https://github.com/kubideh/kubesearch/actions/workflows/main.yml)
+[![CodeQL Analysis](https://github.com/kubideh/kubesearch/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/kubideh/kubesearch/actions/workflows/codeql-analysis.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/kubideh/kubesearch.svg)](https://pkg.go.dev/github.com/kubideh/kubesearch)
 
 # kubesearch
 
