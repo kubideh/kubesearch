@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
@@ -40,17 +41,54 @@ func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
 	return server, controller.Start(index)
 }
 
-func TestSearch_podByName(t *testing.T) {
-	t.Parallel()
+type testSearchCase struct {
+	name   string
+	params string
+	result string
+}
 
+func TestSearch(t *testing.T) {
+	cases := []testSearchCase{
+		{
+			name:   "search for pod by name",
+			params: "query=blargle",
+			result: `{"kind":"Pods","namespace":"flargle","name":"blargle"}`,
+		},
+		{
+			name:   "search for missing object",
+			params: "query=whatever",
+			result: `{}`,
+		},
+		{
+			name:   "search using empty query",
+			params: "query=",
+			result: `{}`,
+		},
+		{
+			name:   "search with missing query param",
+			params: "",
+			result: `{}`,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) { testSearch(t, c) })
+	}
+}
+
+func testSearch(t *testing.T, c testSearchCase) {
 	server, cancel := setup(t)
 	defer server.Close()
 	defer cancel()
 
 	params := url.Values{}
-	params.Add("query", "blargle")
+	if c.params != "" {
+		params.Add(strings.Split(c.params, "=")[0], strings.Split(c.params, "=")[1])
+	}
 
-	response, err := http.Get(fmt.Sprintf("%s/v1/search?%s", server.URL, params.Encode()))
+	uri := fmt.Sprintf("%s/v1/search?%s", server.URL, params.Encode())
+	t.Log(uri)
+	response, err := http.Get(uri)
 	require.NoError(t, err)
 
 	body, err := io.ReadAll(response.Body)
@@ -59,46 +97,5 @@ func TestSearch_podByName(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 	assert.Equal(t, "application/json; charset=utf-8", response.Header.Get("Content-Type"))
-	assert.Equal(t, `{"kind":"Pods","namespace":"flargle","name":"blargle"}`, string(body))
-}
-
-func TestSearch_nonExistentPod(t *testing.T) {
-	t.Parallel()
-
-	server, cancel := setup(t)
-	defer server.Close()
-	defer cancel()
-
-	params := url.Values{}
-	params.Add("query", "whatever")
-
-	response, err := http.Get(fmt.Sprintf("%s/v1/search?%s", server.URL, params.Encode()))
-	require.NoError(t, err)
-
-	body, err := io.ReadAll(response.Body)
-	response.Body.Close()
-	require.NoError(t, err)
-
-	assert.Equal(t, http.StatusOK, response.StatusCode)
-	assert.Equal(t, "application/json; charset=utf-8", response.Header.Get("Content-Type"))
-	assert.Equal(t, `{}`, string(body))
-}
-
-func TestSearch_missingQuery(t *testing.T) {
-	t.Parallel()
-
-	server, cancel := setup(t)
-	defer server.Close()
-	defer cancel()
-
-	response, err := http.Get(fmt.Sprintf("%s/v1/search", server.URL))
-	require.NoError(t, err)
-
-	body, err := io.ReadAll(response.Body)
-	response.Body.Close()
-	require.NoError(t, err)
-
-	assert.Equal(t, http.StatusOK, response.StatusCode)
-	assert.Equal(t, "application/json; charset=utf-8", response.Header.Get("Content-Type"))
-	assert.Equal(t, `{}`, string(body))
+	assert.Equal(t, c.result, string(body))
 }
