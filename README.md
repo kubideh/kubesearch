@@ -8,7 +8,16 @@
 
 ----
 
-Fulltext search for Kubernetes
+Fulltext search for Kubernetes API objects
+
+The Kubernetes API supports exact matches in order to lookup API
+objects. For example, the user can fetch a Pod by name or list Pods
+using labels. In both scenarios, the user must know exactly the name
+of the Pod or labels of the Pod.
+
+Kubesearch and the client kubectl-search let the user **search**
+for relevant API objects without having to know the exact name,
+namespace, or labels.
 
 ## Requirements
 
@@ -21,20 +30,17 @@ brew install goreleaser
 
 ```console
 go test -v ./...
+go install ./...
 ```
 
-## Plan
+## Usage
 
-Build a custom Kubernetes object reflector which indexes the
-metadata of Kubernetes objects into an inverted index that supports
-fulltext search. The goal is to let the user query for their
-objects without having to know the exact labels. The result will be
-a list of object (kind, namespace, name) tuples with which the user
-can use kubectl to easily get their desired object.
+### Run kubesearch as a stand-alone service
 
-A stretch goal is to build a kubectl plugin that lets formats the
-API output of kubesearch and enhances the user experience.
+```console
+kubesearch
+```
 
 ## API
 
-`/v1/search?query=`
+`/v1/search?query=<fulltext query string>`
