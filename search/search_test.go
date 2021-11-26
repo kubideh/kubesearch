@@ -20,7 +20,7 @@ import (
 
 type testSearchCase struct {
 	name   string
-	pod    *corev1.Pod
+	pods   []*corev1.Pod
 	params string
 	result string
 }
@@ -28,64 +28,64 @@ type testSearchCase struct {
 func TestSearch(t *testing.T) {
 	cases := []testSearchCase{
 		{
-			name: "search for pod by name",
-			pod: &corev1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "blargle",
-					Namespace: "flargle",
-				},
-			},
+			name:   "search for pod by name",
+			pods:   testPods(),
 			params: "query=blargle",
-			result: `{"kind":"Pods","namespace":"flargle","name":"blargle"}`,
+			result: `[{"kind":"Pods","namespace":"flargle","name":"blargle"}]`,
 		},
 		{
-			name: "search for pod by namespace",
-			pod: &corev1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "blargle",
-					Namespace: "flargle",
-				},
-			},
+			name:   "search for pod by namespace",
+			pods:   testPods(),
 			params: "query=flargle",
-			result: `{"kind":"Pods","namespace":"flargle","name":"blargle"}`,
+			result: `[{"kind":"Pods","namespace":"flargle","name":"blargle"},{"kind":"Pods","namespace":"flargle","name":"foo"}]`,
 		},
 		{
-			name: "search for missing object",
-			pod: &corev1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "blargle",
-					Namespace: "flargle",
-				},
-			},
+			name:   "search for missing object",
+			pods:   testPods(),
 			params: "query=whatever",
-			result: `{}`,
+			result: `[]`,
 		},
 		{
-			name: "search using empty query",
-			pod: &corev1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "blargle",
-					Namespace: "flargle",
-				},
-			},
+			name:   "search using empty query",
+			pods:   testPods(),
 			params: "query=",
-			result: `{}`,
+			result: `[]`,
 		},
 		{
-			name: "search with missing query param",
-			pod: &corev1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "blargle",
-					Namespace: "flargle",
-				},
-			},
+			name:   "search with missing query param",
+			pods:   testPods(),
 			params: "",
-			result: `{}`,
+			result: `[]`,
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) { testSearch(t, c) })
+	}
+}
+
+func testPods() []*corev1.Pod {
+	return []*corev1.Pod{
+		testPodFlargleBlargle(),
+		testPodFlargleFoo(),
+	}
+}
+
+func testPodFlargleBlargle() *corev1.Pod {
+	return &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "blargle",
+			Namespace: "flargle",
+		},
+	}
+}
+
+func testPodFlargleFoo() *corev1.Pod {
+	return &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "foo",
+			Namespace: "flargle",
+		},
 	}
 }
 
@@ -105,8 +105,10 @@ func testSearch(t *testing.T, c testSearchCase) {
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
-	_, err := client.CoreV1().Pods(c.pod.GetNamespace()).Create(context.TODO(), c.pod, metav1.CreateOptions{})
-	require.NoError(t, err)
+	for _, p := range c.pods {
+		_, err := client.CoreV1().Pods(p.GetNamespace()).Create(context.TODO(), p, metav1.CreateOptions{})
+		require.NoError(t, err)
+	}
 
 	params := url.Values{}
 	if c.params != "" {

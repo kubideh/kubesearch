@@ -28,33 +28,44 @@ func Handler(index *InvertedIndex, store cache.Store) func(http.ResponseWriter, 
 			return
 		}
 
-		key, found := index.Get(values[0])
+		postings, found := index.Get(values[0])
 
 		if !found {
 			writeEmptyOutput(writer)
 			return
 		}
 
-		item, exists, err := store.GetByKey(key)
+		var pods []*corev1.Pod
+		for _, p := range postings {
+			item, exists, err := store.GetByKey(p)
 
-		if err != nil {
-			klog.Errorln(err)
-			writeEmptyOutput(writer)
-			return
+			if err != nil {
+				klog.Errorln(err)
+				writeEmptyOutput(writer)
+				return
+			}
+
+			if !exists {
+				writeEmptyOutput(writer)
+				return
+			}
+
+			pods = append(pods, item.(*corev1.Pod))
 		}
 
-		if !exists {
-			writeEmptyOutput(writer)
-			return
-		}
-
-		pod := item.(*corev1.Pod)
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-		io.WriteString(writer, fmt.Sprintf(`{"kind":"Pods","namespace":"%s","name":"%s"}`, pod.Namespace, pod.Name))
+		io.WriteString(writer, "[")
+		for i, p := range pods {
+			if i != 0 {
+				io.WriteString(writer, ",")
+			}
+			io.WriteString(writer, fmt.Sprintf(`{"kind":"Pods","namespace":"%s","name":"%s"}`, p.Namespace, p.Name))
+		}
+		io.WriteString(writer, "]")
 	}
 }
 
 func writeEmptyOutput(writer http.ResponseWriter) {
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-	io.WriteString(writer, "{}")
+	io.WriteString(writer, "[]")
 }
