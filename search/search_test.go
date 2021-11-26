@@ -20,7 +20,6 @@ import (
 
 type testSearchCase struct {
 	name   string
-	pods   []*corev1.Pod
 	params string
 	result string
 }
@@ -29,31 +28,26 @@ func TestSearch(t *testing.T) {
 	cases := []testSearchCase{
 		{
 			name:   "search for pod by name",
-			pods:   testPods(),
 			params: "query=blargle",
 			result: `[{"kind":"Pods","namespace":"flargle","name":"blargle"}]`,
 		},
 		{
 			name:   "search for pod by namespace",
-			pods:   testPods(),
 			params: "query=flargle",
 			result: `[{"kind":"Pods","namespace":"flargle","name":"blargle"},{"kind":"Pods","namespace":"flargle","name":"foo"}]`,
 		},
 		{
 			name:   "search for missing object",
-			pods:   testPods(),
 			params: "query=whatever",
 			result: `[]`,
 		},
 		{
 			name:   "search using empty query",
-			pods:   testPods(),
 			params: "query=",
 			result: `[]`,
 		},
 		{
 			name:   "search with missing query param",
-			pods:   testPods(),
 			params: "",
 			result: `[]`,
 		},
@@ -105,7 +99,7 @@ func testSearch(t *testing.T, c testSearchCase) {
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
-	for _, p := range c.pods {
+	for _, p := range testPods() {
 		_, err := client.CoreV1().Pods(p.GetNamespace()).Create(context.TODO(), p, metav1.CreateOptions{})
 		require.NoError(t, err)
 	}
