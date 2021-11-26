@@ -8,7 +8,9 @@ before:
     - go generate ./...
     - go test -cover -race ./...
 builds:
-  - env:
+  - id: kubesearch
+    binary: kubesearch
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
@@ -17,6 +19,19 @@ builds:
     goarch:
       - amd64
       - arm64
+    main: ./cmd/kubesearch
+  - id: kubectl-search
+    binary: kubectl-search
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    main: ./cmd/kubectl-search
 dockers:
   - image_templates:
       - "docker.io/evanmcclure/kubesearch:{{ .Version }}"
