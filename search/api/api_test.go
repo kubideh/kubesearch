@@ -26,12 +26,12 @@ func TestSearchAPI(t *testing.T) {
 		{
 			name:   "search for pod by name",
 			query:  "blargle",
-			result: `[{"kind":"Pods","namespace":"flargle","name":"blargle"}]`,
+			result: `[{"kind":"Pod","namespace":"flargle","name":"blargle"}]`,
 		},
 		{
 			name:   "search for pod by namespace",
 			query:  "flargle",
-			result: `[{"kind":"Pods","namespace":"flargle","name":"blargle"},{"kind":"Pods","namespace":"flargle","name":"foo"}]`,
+			result: `[{"kind":"Pod","namespace":"flargle","name":"blargle"},{"kind":"Pod","namespace":"flargle","name":"foo"}]`,
 		},
 		{
 			name:   "search for missing object",

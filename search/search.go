@@ -54,10 +54,10 @@ func Handler(index *InvertedIndex, store map[string]cache.Store) func(http.Respo
 			switch p.Kind {
 			case "Deployment":
 				deployment := item.(*appsv1.Deployment)
-				objects = append(objects, fmt.Sprintf(`{"kind":"Deployments","namespace":"%s","name":"%s"}`, deployment.Namespace, deployment.Name))
+				objects = append(objects, fmt.Sprintf(`{"kind":"Deployment","namespace":"%s","name":"%s"}`, deployment.Namespace, deployment.Name))
 			case "Pod":
 				pod := item.(*corev1.Pod)
-				objects = append(objects, fmt.Sprintf(`{"kind":"Pods","namespace":"%s","name":"%s"}`, pod.Namespace, pod.Name))
+				objects = append(objects, fmt.Sprintf(`{"kind":"Pod","namespace":"%s","name":"%s"}`, pod.Namespace, pod.Name))
 			}
 		}
 

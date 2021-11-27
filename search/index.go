@@ -15,22 +15,25 @@ type InvertedIndex struct {
 	mutex sync.RWMutex
 }
 
-// Put adds a docID to the search index.
+// Put adds a Posting to the search index for the given term.
 func (idx *InvertedIndex) Put(term string, doc Posting) {
 	idx.mutex.Lock()
 	defer idx.mutex.Unlock()
+
 	idx.index[term] = append(idx.index[term], doc)
 }
 
-// Get looks up a docID in the search index.
-func (idx *InvertedIndex) Get(term string) ([]Posting, bool) {
+// Get looks up Postings in the search index using the given term.
+func (idx *InvertedIndex) Get(term string) (result []Posting, found bool) {
 	idx.mutex.RLock()
 	defer idx.mutex.RUnlock()
-	result, found := idx.index[term]
-	return result, found
+
+	result, found = idx.index[term]
+
+	return
 }
 
-// NewIndex returns a Index objects.
+// NewIndex returns InvertedIndex objects.
 func NewIndex() *InvertedIndex {
 	return &InvertedIndex{
 		index: make(map[string][]Posting),

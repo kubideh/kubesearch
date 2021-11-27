@@ -30,12 +30,12 @@ func TestSearch(t *testing.T) {
 		{
 			name:   "search for objects by name",
 			params: "query=blargle",
-			result: `[{"kind":"Deployments","namespace":"flargle","name":"blargle"},{"kind":"Pods","namespace":"flargle","name":"blargle"}]`,
+			result: `[{"kind":"Deployment","namespace":"flargle","name":"blargle"},{"kind":"Pod","namespace":"flargle","name":"blargle"}]`,
 		},
 		{
 			name:   "search for objects by namespace",
 			params: "query=flargle",
-			result: `[{"kind":"Deployments","namespace":"flargle","name":"blargle"},{"kind":"Pods","namespace":"flargle","name":"blargle"},{"kind":"Pods","namespace":"flargle","name":"foo"}]`,
+			result: `[{"kind":"Deployment","namespace":"flargle","name":"blargle"},{"kind":"Pod","namespace":"flargle","name":"blargle"},{"kind":"Pod","namespace":"flargle","name":"foo"}]`,
 		},
 		{
 			name:   "search for missing object",
