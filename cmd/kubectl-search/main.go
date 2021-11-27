@@ -2,8 +2,23 @@
 // kubectl-search; nothing else.
 package main
 
-import "k8s.io/klog/v2"
+import (
+	"fmt"
+	"os"
+
+	"github.com/kubideh/kubesearch/search/api"
+)
 
 func main() {
-	klog.Infoln("kubectl-search")
+	if len(os.Args) < 2 {
+		fmt.Fprintln(os.Stderr, "You must specify a query.")
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Fprintln(os.Stderr, "Use \"kubectl search <query>\".")
+		os.Exit(1)
+	}
+
+	if err := api.Search("http://localhost:8080", os.Args[1]); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }
