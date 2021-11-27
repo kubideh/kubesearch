@@ -8,18 +8,19 @@ import (
 	"io"
 	"net/http"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 )
 
 // RegisterHandler registers the search API handler with the given mux.
-func RegisterHandler(mux *http.ServeMux, index *InvertedIndex, store cache.Store) {
+func RegisterHandler(mux *http.ServeMux, index *InvertedIndex, store map[string]cache.Store) {
 	mux.HandleFunc("/v1/search", Handler(index, store))
 }
 
-// Handler is an http.HandlerFunc that responds with just "Hello World!".
-func Handler(index *InvertedIndex, store cache.Store) func(http.ResponseWriter, *http.Request) {
+// Handler is an http.HandlerFunc that responds with query results.
+func Handler(index *InvertedIndex, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		values, ok := request.URL.Query()["query"]
 
@@ -35,9 +36,9 @@ func Handler(index *InvertedIndex, store cache.Store) func(http.ResponseWriter, 
 			return
 		}
 
-		var pods []*corev1.Pod
+		var objects []string
 		for _, p := range postings {
-			item, exists, err := store.GetByKey(p)
+			item, exists, err := store[p.Kind].GetByKey(p.Key)
 
 			if err != nil {
 				klog.Errorln(err)
@@ -50,16 +51,23 @@ func Handler(index *InvertedIndex, store cache.Store) func(http.ResponseWriter, 
 				return
 			}
 
-			pods = append(pods, item.(*corev1.Pod))
+			switch p.Kind {
+			case "Deployment":
+				deployment := item.(*appsv1.Deployment)
+				objects = append(objects, fmt.Sprintf(`{"kind":"Deployments","namespace":"%s","name":"%s"}`, deployment.Namespace, deployment.Name))
+			case "Pod":
+				pod := item.(*corev1.Pod)
+				objects = append(objects, fmt.Sprintf(`{"kind":"Pods","namespace":"%s","name":"%s"}`, pod.Namespace, pod.Name))
+			}
 		}
 
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		io.WriteString(writer, "[")
-		for i, p := range pods {
+		for i, o := range objects {
 			if i != 0 {
 				io.WriteString(writer, ",")
 			}
-			io.WriteString(writer, fmt.Sprintf(`{"kind":"Pods","namespace":"%s","name":"%s"}`, p.Namespace, p.Name))
+			io.WriteString(writer, o)
 		}
 		io.WriteString(writer, "]")
 	}

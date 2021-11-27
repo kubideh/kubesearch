@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
@@ -27,14 +28,14 @@ type testSearchCase struct {
 func TestSearch(t *testing.T) {
 	cases := []testSearchCase{
 		{
-			name:   "search for pod by name",
+			name:   "search for objects by name",
 			params: "query=blargle",
-			result: `[{"kind":"Pods","namespace":"flargle","name":"blargle"}]`,
+			result: `[{"kind":"Deployments","namespace":"flargle","name":"blargle"},{"kind":"Pods","namespace":"flargle","name":"blargle"}]`,
 		},
 		{
-			name:   "search for pod by namespace",
+			name:   "search for objects by namespace",
 			params: "query=flargle",
-			result: `[{"kind":"Pods","namespace":"flargle","name":"blargle"},{"kind":"Pods","namespace":"flargle","name":"foo"}]`,
+			result: `[{"kind":"Deployments","namespace":"flargle","name":"blargle"},{"kind":"Pods","namespace":"flargle","name":"blargle"},{"kind":"Pods","namespace":"flargle","name":"foo"}]`,
 		},
 		{
 			name:   "search for missing object",
@@ -55,6 +56,17 @@ func TestSearch(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) { testSearch(t, c) })
+	}
+}
+
+func testDeployments() []*appsv1.Deployment {
+	return []*appsv1.Deployment{
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "blargle",
+				Namespace: "flargle",
+			},
+		},
 	}
 }
 
@@ -98,6 +110,11 @@ func testSearch(t *testing.T, c testSearchCase) {
 
 	server := httptest.NewServer(mux)
 	defer server.Close()
+
+	for _, d := range testDeployments() {
+		_, err := client.AppsV1().Deployments(d.GetNamespace()).Create(context.TODO(), d, metav1.CreateOptions{})
+		require.NoError(t, err)
+	}
 
 	for _, p := range testPods() {
 		_, err := client.CoreV1().Pods(p.GetNamespace()).Create(context.TODO(), p, metav1.CreateOptions{})
