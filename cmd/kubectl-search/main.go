@@ -17,8 +17,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := api.Search("http://localhost:8080", os.Args[1]); err != nil {
+	result, err := api.Search("http://localhost:8080", os.Args[1])
+
+	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+
+	fmt.Println(result)
 }

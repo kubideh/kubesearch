@@ -8,11 +8,11 @@ import (
 	"net/http"
 )
 
-func Search(endpoint, query string) error {
+func Search(endpoint, query string) (string, error) {
 	response, err := http.Get(fmt.Sprintf("%s/v1/search?query=%s", endpoint, query))
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
@@ -20,9 +20,8 @@ func Search(endpoint, query string) error {
 	defer response.Body.Close()
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	fmt.Println(string(body))
-	return nil
+	return string(body), nil
 }
