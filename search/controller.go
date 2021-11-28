@@ -53,8 +53,7 @@ func (c *Controller) Start(index *Index) context.CancelFunc {
 func NewController(client kubernetes.Interface) *Controller {
 	factory := informers.NewSharedInformerFactory(client, 0)
 
-	// add support for statefulsets
-	// support the creation of informers by the caller
+	// XXX Support the creation of informers by the caller.
 
 	return &Controller{
 		informerFactory: factory,
@@ -70,10 +69,14 @@ func indexObjects(queue workqueue.RateLimitingInterface, index *Index, kind stri
 
 	for !shutdown {
 		if namespace(key) != "" {
-			DoIndex(index, namespace(key), Posting{Key: keyString(key), Kind: kind})
+			// XXX The name of your namespace must be a valid DNS label.
+			// https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
+			IndexDNSSubdomainNames(index, namespace(key), Posting{Key: keyString(key), Kind: kind})
 		}
 
-		DoIndex(index, name(key), Posting{Key: keyString(key), Kind: kind})
+		IndexDNSSubdomainNames(index, name(key), Posting{Key: keyString(key), Kind: kind})
+
+		// XXX Support indexing annotations and labels
 
 		key, shutdown = queue.Get()
 	}

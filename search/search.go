@@ -51,6 +51,8 @@ func Handler(index *Index, store map[string]cache.Store) func(http.ResponseWrite
 				return
 			}
 
+			// XXX Refactor this to make it dynamic; not dependent on Kind.
+
 			switch p.Kind {
 			case "Deployment":
 				deployment := item.(*appsv1.Deployment)

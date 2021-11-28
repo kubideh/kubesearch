@@ -1,6 +1,9 @@
 package search
 
-import "sync"
+import (
+	"strings"
+	"sync"
+)
 
 // Posting represents an object Key and the kind of object the ID
 // references.
@@ -40,7 +43,42 @@ func NewIndex() *Index {
 	}
 }
 
-// DoIndex indexes the given text for the given posting.
-func DoIndex(index *Index, text string, posting Posting) {
-	index.Put(text, posting)
+// IndexDNSSubdomainNames indexes the given text for the given
+// posting using the rules given by https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-subdomain-names.
+func IndexDNSSubdomainNames(index *Index, text string, posting Posting) {
+	if text == "" {
+		return
+	}
+
+	if len(text) > 253 {
+		text = text[0:253]
+	}
+
+	// XXX replace with Scanner or regex that tokenizes into words
+	// including words separated by dots or hyphens. the set of
+	// tokens should be a powerset.
+
+	tokens := make(map[string]struct{})
+
+	tokens[text] = struct{}{} // The entire text is a token.
+
+	for _, t := range strings.Split(text, ".") {
+		tokens[t] = struct{}{}
+
+		for _, s := range strings.Split(t, "-") {
+			tokens[s] = struct{}{}
+		}
+	}
+
+	for _, t := range strings.Split(text, "-") {
+		tokens[t] = struct{}{}
+
+		for _, s := range strings.Split(t, ".") {
+			tokens[s] = struct{}{}
+		}
+	}
+
+	for t := range tokens {
+		index.Put(t, posting)
+	}
 }
