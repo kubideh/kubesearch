@@ -41,6 +41,12 @@ go install ./...
 kubesearch
 ```
 
+### Search for Kubernetes objects using kubectl
+
+```console
+kubectl search blargle
+```
+
 ## API
 
 `/v1/search?query=<fulltext query string>`
