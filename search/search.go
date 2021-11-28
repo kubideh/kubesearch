@@ -15,12 +15,12 @@ import (
 )
 
 // RegisterHandler registers the search API handler with the given mux.
-func RegisterHandler(mux *http.ServeMux, index *InvertedIndex, store map[string]cache.Store) {
+func RegisterHandler(mux *http.ServeMux, index *Index, store map[string]cache.Store) {
 	mux.HandleFunc("/v1/search", Handler(index, store))
 }
 
 // Handler is an http.HandlerFunc that responds with query results.
-func Handler(index *InvertedIndex, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
+func Handler(index *Index, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		values, ok := request.URL.Query()["query"]
 

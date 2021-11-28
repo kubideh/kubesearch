@@ -35,7 +35,7 @@ func (c *Controller) Store() map[string]cache.Store {
 
 // Start this controller. The caller should defer the call to the
 // return cancel function.
-func (c *Controller) Start(index *InvertedIndex) context.CancelFunc {
+func (c *Controller) Start(index *Index) context.CancelFunc {
 	for k := range c.informers {
 		go indexObjects(c.informers[k].queue, index, k)
 	}
@@ -65,15 +65,15 @@ func NewController(client kubernetes.Interface) *Controller {
 	}
 }
 
-func indexObjects(queue workqueue.RateLimitingInterface, index *InvertedIndex, kind string) {
+func indexObjects(queue workqueue.RateLimitingInterface, index *Index, kind string) {
 	key, shutdown := queue.Get()
 
 	for !shutdown {
 		if namespace(key) != "" {
-			index.Put(namespace(key), Posting{Key: keyString(key), Kind: kind})
+			DoIndex(index, namespace(key), Posting{Key: keyString(key), Kind: kind})
 		}
 
-		index.Put(name(key), Posting{Key: keyString(key), Kind: kind})
+		DoIndex(index, name(key), Posting{Key: keyString(key), Kind: kind})
 
 		key, shutdown = queue.Get()
 	}

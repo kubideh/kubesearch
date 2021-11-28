@@ -9,22 +9,22 @@ type Posting struct {
 	Kind string
 }
 
-// InvertedIndex maps terms to object keys.
-type InvertedIndex struct {
+// Index maps terms to object keys.
+type Index struct {
 	index map[string][]Posting
 	mutex sync.RWMutex
 }
 
-// Put adds a Posting to the search index for the given term.
-func (idx *InvertedIndex) Put(term string, doc Posting) {
+// Put adds a posting to the search index for the given term.
+func (idx *Index) Put(term string, posting Posting) {
 	idx.mutex.Lock()
 	defer idx.mutex.Unlock()
 
-	idx.index[term] = append(idx.index[term], doc)
+	idx.index[term] = append(idx.index[term], posting)
 }
 
-// Get looks up Postings in the search index using the given term.
-func (idx *InvertedIndex) Get(term string) (result []Posting, found bool) {
+// Get looks up a posting list in the search index using the given term.
+func (idx *Index) Get(term string) (result []Posting, found bool) {
 	idx.mutex.RLock()
 	defer idx.mutex.RUnlock()
 
@@ -34,8 +34,13 @@ func (idx *InvertedIndex) Get(term string) (result []Posting, found bool) {
 }
 
 // NewIndex returns InvertedIndex objects.
-func NewIndex() *InvertedIndex {
-	return &InvertedIndex{
+func NewIndex() *Index {
+	return &Index{
 		index: make(map[string][]Posting),
 	}
+}
+
+// DoIndex indexes the given text for the given posting.
+func DoIndex(index *Index, text string, posting Posting) {
+	index.Put(text, posting)
 }
