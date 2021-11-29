@@ -18,30 +18,47 @@ import (
 type testSearchCase struct {
 	name   string
 	query  string
-	result string
+	result []search.Result
 }
 
 func TestSearchAPI(t *testing.T) {
 	cases := []testSearchCase{
 		{
-			name:   "search for pod by name",
-			query:  "blargle",
-			result: `[{"kind":"Pod","namespace":"flargle","name":"blargle"}]`,
+			name:  "search for pod by name",
+			query: "blargle",
+			result: []search.Result{
+				{
+					Kind:      "Pod",
+					Name:      "blargle",
+					Namespace: "flargle",
+				},
+			},
 		},
 		{
-			name:   "search for pod by namespace",
-			query:  "flargle",
-			result: `[{"kind":"Pod","namespace":"flargle","name":"blargle"},{"kind":"Pod","namespace":"flargle","name":"foo"}]`,
+			name:  "search for pod by namespace",
+			query: "flargle",
+			result: []search.Result{
+				{
+					Kind:      "Pod",
+					Name:      "blargle",
+					Namespace: "flargle",
+				},
+				{
+					Kind:      "Pod",
+					Name:      "foo",
+					Namespace: "flargle",
+				},
+			},
 		},
 		{
 			name:   "search for missing object",
 			query:  "whatever",
-			result: `[]`,
+			result: []search.Result{},
 		},
 		{
 			name:   "search using empty query",
 			query:  "",
-			result: `[]`,
+			result: []search.Result{},
 		},
 	}
 

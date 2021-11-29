@@ -4,7 +4,7 @@
 package search
 
 import (
-	"fmt"
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -17,6 +17,13 @@ import (
 // RegisterHandler registers the search API handler with the given mux.
 func RegisterHandler(mux *http.ServeMux, index *Index, store map[string]cache.Store) {
 	mux.HandleFunc("/v1/search", Handler(index, store))
+}
+
+// Result is a single result entry.
+type Result struct {
+	Kind      string `json:"kind,omitempty"`
+	Name      string `json:"name,omitempty`
+	Namespace string `json:"namespaces,omitempty`
 }
 
 // Handler is an http.HandlerFunc that responds with query results.
@@ -36,7 +43,7 @@ func Handler(index *Index, store map[string]cache.Store) func(http.ResponseWrite
 			return
 		}
 
-		var objects []string
+		var objects []Result
 		for _, p := range postings {
 			item, exists, err := store[p.Kind].GetByKey(p.Key)
 
@@ -56,10 +63,18 @@ func Handler(index *Index, store map[string]cache.Store) func(http.ResponseWrite
 			switch p.Kind {
 			case "Deployment":
 				deployment := item.(*appsv1.Deployment)
-				objects = append(objects, fmt.Sprintf(`{"kind":"Deployment","namespace":"%s","name":"%s"}`, deployment.Namespace, deployment.Name))
+				objects = append(objects, Result{
+					Kind:      p.Kind,
+					Name:      deployment.GetName(),
+					Namespace: deployment.GetNamespace(),
+				})
 			case "Pod":
 				pod := item.(*corev1.Pod)
-				objects = append(objects, fmt.Sprintf(`{"kind":"Pod","namespace":"%s","name":"%s"}`, pod.Namespace, pod.Name))
+				objects = append(objects, Result{
+					Kind:      p.Kind,
+					Name:      pod.GetName(),
+					Namespace: pod.GetNamespace(),
+				})
 			}
 		}
 
@@ -69,7 +84,12 @@ func Handler(index *Index, store map[string]cache.Store) func(http.ResponseWrite
 			if i != 0 {
 				io.WriteString(writer, ",")
 			}
-			io.WriteString(writer, o)
+			entry, err := json.Marshal(o)
+			if err != nil {
+				klog.Warningln("error marshaling result: ", err)
+				continue
+			}
+			io.WriteString(writer, string(entry))
 		}
 		io.WriteString(writer, "]")
 	}

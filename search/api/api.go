@@ -3,16 +3,19 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/kubideh/kubesearch/search"
 )
 
-func Search(endpoint, query string) (string, error) {
+func Search(endpoint, query string) ([]search.Result, error) {
 	response, err := http.Get(fmt.Sprintf("%s/v1/search?query=%s", endpoint, query))
 
 	if err != nil {
-		return "", err
+		return []search.Result{}, err
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
@@ -20,8 +23,13 @@ func Search(endpoint, query string) (string, error) {
 	defer response.Body.Close()
 
 	if err != nil {
-		return "", err
+		return []search.Result{}, err
 	}
 
-	return string(body), nil
+	var result []search.Result
+	if err := json.Unmarshal(body, &result); err != nil {
+		return []search.Result{}, err
+	}
+
+	return result, nil
 }

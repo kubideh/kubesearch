@@ -2,6 +2,7 @@ package search
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -22,7 +23,7 @@ import (
 type testSearchCase struct {
 	name   string
 	params string
-	result string
+	result []Result
 }
 
 func TestSearch(t *testing.T) {
@@ -30,27 +31,54 @@ func TestSearch(t *testing.T) {
 		{
 			name:   "search for objects by name",
 			params: "query=blargle",
-			result: `[{"kind":"Deployment","namespace":"flargle","name":"blargle"},{"kind":"Pod","namespace":"flargle","name":"blargle"}]`,
+			result: []Result{
+				{
+					Kind:      "Deployment",
+					Name:      "blargle",
+					Namespace: "flargle",
+				},
+				{
+					Kind:      "Pod",
+					Name:      "blargle",
+					Namespace: "flargle",
+				},
+			},
 		},
 		{
 			name:   "search for objects by namespace",
 			params: "query=flargle",
-			result: `[{"kind":"Deployment","namespace":"flargle","name":"blargle"},{"kind":"Pod","namespace":"flargle","name":"blargle"},{"kind":"Pod","namespace":"flargle","name":"foo"}]`,
+			result: []Result{
+				{
+					Kind:      "Deployment",
+					Name:      "blargle",
+					Namespace: "flargle",
+				},
+				{
+					Kind:      "Pod",
+					Name:      "blargle",
+					Namespace: "flargle",
+				},
+				{
+					Kind:      "Pod",
+					Name:      "foo",
+					Namespace: "flargle",
+				},
+			},
 		},
 		{
 			name:   "search for missing object",
 			params: "query=whatever",
-			result: `[]`,
+			result: []Result{},
 		},
 		{
 			name:   "search using empty query",
 			params: "query=",
-			result: `[]`,
+			result: []Result{},
 		},
 		{
 			name:   "search with missing query param",
 			params: "",
-			result: `[]`,
+			result: []Result{},
 		},
 	}
 
@@ -127,7 +155,9 @@ func testSearch(t *testing.T, c testSearchCase) {
 	}
 
 	uri := fmt.Sprintf("%s/v1/search?%s", server.URL, params.Encode())
-	t.Log(uri)
+
+	t.Log("uri: ", uri)
+
 	response, err := http.Get(uri)
 	require.NoError(t, err)
 
@@ -135,7 +165,12 @@ func testSearch(t *testing.T, c testSearchCase) {
 	response.Body.Close()
 	require.NoError(t, err)
 
+	t.Log("body: ", string(body))
+
+	var result []Result
+	require.NoError(t, json.Unmarshal(body, &result))
+
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 	assert.Equal(t, "application/json; charset=utf-8", response.Header.Get("Content-Type"))
-	assert.Equal(t, c.result, string(body))
+	assert.Equal(t, c.result, result)
 }
