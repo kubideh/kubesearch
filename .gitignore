@@ -20,3 +20,6 @@
 # vendor/
 
 dist/
+
+.vscode/
+
