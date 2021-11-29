@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
@@ -43,55 +44,78 @@ func Handler(index *Index, store map[string]cache.Store) func(http.ResponseWrite
 			return
 		}
 
-		var objects []Result
-		for _, p := range postings {
-			item, exists, err := store[p.Kind].GetByKey(p.Key)
+		objects, err := resultsFromPostings(postings, store)
 
-			if err != nil {
-				klog.Errorln(err)
-				writeEmptyOutput(writer)
-				return
-			}
-
-			if !exists {
-				writeEmptyOutput(writer)
-				return
-			}
-
-			// XXX Refactor this to make it dynamic; not dependent on Kind.
-
-			switch p.Kind {
-			case "Deployment":
-				deployment := item.(*appsv1.Deployment)
-				objects = append(objects, Result{
-					Kind:      p.Kind,
-					Name:      deployment.GetName(),
-					Namespace: deployment.GetNamespace(),
-				})
-			case "Pod":
-				pod := item.(*corev1.Pod)
-				objects = append(objects, Result{
-					Kind:      p.Kind,
-					Name:      pod.GetName(),
-					Namespace: pod.GetNamespace(),
-				})
-			}
+		if err != nil {
+			klog.Errorln(err)
+			writeEmptyOutput(writer)
+			return
 		}
 
-		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-		io.WriteString(writer, "[")
-		for i, o := range objects {
-			if i != 0 {
-				io.WriteString(writer, ",")
-			}
-			entry, err := json.Marshal(o)
-			if err != nil {
-				klog.Warningln("error marshaling result: ", err)
-				continue
-			}
-			io.WriteString(writer, string(entry))
+		writeResults(writer, objects)
+	}
+}
+
+func writeResults(writer http.ResponseWriter, objects []Result) {
+	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	io.WriteString(writer, "[")
+
+	for i, o := range objects {
+		if i != 0 {
+			io.WriteString(writer, ",")
 		}
-		io.WriteString(writer, "]")
+		entry, err := json.Marshal(o)
+		if err != nil {
+			klog.Warningln("error marshaling result: ", err)
+			continue
+		}
+		io.WriteString(writer, string(entry))
+	}
+
+	io.WriteString(writer, "]")
+}
+
+func resultsFromPostings(postings []Posting, store map[string]cache.Store) ([]Result, error) {
+	var results []Result
+
+	for _, p := range postings {
+		item, exists, err := store[p.Kind].GetByKey(p.Key)
+
+		if err != nil {
+			return results, err
+		}
+
+		if !exists {
+			return results, err
+		}
+
+		// XXX Refactor this to make it dynamic; not dependent on Kind.
+
+		switch p.Kind {
+		case "Deployment":
+			results = append(results, resultFromDeployment(item.(*appsv1.Deployment)))
+		case "Pod":
+			results = append(results, resultFromPod(item.(*corev1.Pod)))
+		}
+	}
+
+	return results, nil
+}
+
+func resultFromDeployment(deployment *v1.Deployment) Result {
+	return Result{
+		Kind:      "Deployment",
+		Name:      deployment.GetName(),
+		Namespace: deployment.GetNamespace(),
+	}
+}
+
+func resultFromPod(pod *corev1.Pod) Result {
+	return Result{
+		Kind:      "Pod",
+		Name:      pod.GetName(),
+		Namespace: pod.GetNamespace(),
 	}
 }
 
