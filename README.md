@@ -29,7 +29,6 @@ brew install goreleaser
 ## Getting started
 
 ```console
-go test -v ./...
 go install ./...
 ```
 
@@ -44,7 +43,9 @@ kubesearch
 ### Search for Kubernetes objects using kubectl
 
 ```console
-kubectl search blargle
+k create ns flargle
+k run blargle -n flargle --image=nginx:alpine
+kubectl search flargle
 ```
 
 ## API
