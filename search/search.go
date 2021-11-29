@@ -23,8 +23,8 @@ func RegisterHandler(mux *http.ServeMux, index *Index, store map[string]cache.St
 // Result is a single result entry.
 type Result struct {
 	Kind      string `json:"kind,omitempty"`
-	Name      string `json:"name,omitempty`
-	Namespace string `json:"namespaces,omitempty`
+	Name      string `json:"name,omitempty"`
+	Namespace string `json:"namespaces,omitempty"`
 }
 
 // Handler is an http.HandlerFunc that responds with query results.
