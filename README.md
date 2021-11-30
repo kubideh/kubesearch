@@ -47,7 +47,7 @@ kubesearch
 ```console
 kubectl create ns flargle
 kubectl run blargle -n flargle --image=nginx:alpine
-kubectl run boggle -n flargle --image=alpine
+kubectl run boggle -n flargle --image=nginx:latest
 kubectl search blargle
 kubectl search flargle
 kubectl search \"nginx:alpine\"
