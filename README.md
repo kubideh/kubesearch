@@ -45,14 +45,17 @@ kubesearch
 ### Search for Kubernetes objects using kubectl
 
 ```console
-k create ns flargle
-k run blargle -n flargle --image=nginx:alpine
+kubectl create ns flargle
+kubectl run blargle -n flargle --image=nginx:alpine
+kubectl run boggle -n flargle --image=alpine
+kubectl search blargle
 kubectl search flargle
+kubectl search \"nginx:alpine\"
 ```
 
 ## API
 
-`/v1/search?query=<fulltext query string>`
+`/v1/search?query=<fulltext query string>` # Search using a phrase query by surrounding the query in `"` (quotes)
 
 ## To do
 
