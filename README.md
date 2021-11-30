@@ -50,6 +50,7 @@ kubectl run blargle -n flargle --image=nginx:alpine
 kubectl run boggle -n flargle --image=nginx:latest
 kubectl search blargle
 kubectl search flargle
+kubectl search nginx
 kubectl search \"nginx:alpine\"
 ```
 
