@@ -51,3 +51,13 @@ kubectl search flargle
 ## API
 
 `/v1/search?query=<fulltext query string>`
+
+## To do
+
+1. Don't store duplicate postings in the same postings list; increment term frequency instead
+2. Don't index exact phrases
+3. Parse queries into terms and combine results
+4. Basic ranked retrieval by term frequency
+5. Combine results to support exact phrases
+6. Index annotations, container names, images names, labels, and volume names
+7. 
