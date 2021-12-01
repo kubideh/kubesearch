@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/kubideh/kubesearch/search"
+	"github.com/kubideh/kubesearch/search/controller"
+	"github.com/kubideh/kubesearch/search/index"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
@@ -21,15 +23,15 @@ func main() {
 	client := createKubernetesClient(kubeconfig)
 
 	// create the Controller to be used by the search API handler
-	controller := search.NewController(client)
+	cont := controller.NewController(client)
 
-	index := search.NewIndex()
+	idx := index.NewIndex()
 
-	cancel := controller.Start(index)
+	cancel := cont.Start(idx)
 	defer cancel()
 
 	mux := http.NewServeMux()
-	search.RegisterHandler(mux, index, controller.Store())
+	search.RegisterHandler(mux, idx, cont.Store())
 
 	klog.Infoln("Listening on :8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {

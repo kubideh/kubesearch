@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/kubideh/kubesearch/search/index"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
@@ -15,8 +16,8 @@ import (
 )
 
 // RegisterHandler registers the search API handler with the given mux.
-func RegisterHandler(mux *http.ServeMux, index *Index, store map[string]cache.Store) {
-	mux.HandleFunc("/v1/search", Handler(index, store))
+func RegisterHandler(mux *http.ServeMux, idx *index.Index, store map[string]cache.Store) {
+	mux.HandleFunc("/v1/search", Handler(idx, store))
 }
 
 // Result is a single result entry.
@@ -27,7 +28,7 @@ type Result struct {
 }
 
 // Handler is an http.HandlerFunc that responds with query results.
-func Handler(index *Index, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
+func Handler(idx *index.Index, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		values, ok := request.URL.Query()["query"]
 
@@ -36,7 +37,7 @@ func Handler(index *Index, store map[string]cache.Store) func(http.ResponseWrite
 			return
 		}
 
-		postings, found := index.Get(values[0])
+		postings, found := idx.Get(values[0])
 
 		if !found {
 			writeEmptyOutput(writer)
@@ -75,7 +76,7 @@ func writeResults(writer http.ResponseWriter, objects []Result) {
 	io.WriteString(writer, "]")
 }
 
-func resultsFromPostings(postings []Posting, store map[string]cache.Store) ([]Result, error) {
+func resultsFromPostings(postings []index.Posting, store map[string]cache.Store) ([]Result, error) {
 	var results []Result
 
 	for _, p := range postings {

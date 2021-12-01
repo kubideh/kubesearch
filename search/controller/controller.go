@@ -1,9 +1,13 @@
-package search
+// Package controller provides a Kubernetes controller that watches
+// for changes to Kubernetes objects and updates the an inverted
+// index with those changes.
+package controller
 
 import (
 	"context"
 	"strings"
 
+	"github.com/kubideh/kubesearch/search/index"
 	"github.com/kubideh/kubesearch/search/tokenizer"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -37,9 +41,9 @@ func (c *Controller) Store() map[string]cache.Store {
 
 // Start this controller. The caller should defer the call to the
 // return cancel function.
-func (c *Controller) Start(index *Index) context.CancelFunc {
+func (c *Controller) Start(idx *index.Index) context.CancelFunc {
 	for kind, informer := range c.informers {
-		go indexObjects(informer.queue, index, kind)
+		go indexObjects(informer.queue, idx, kind)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -66,15 +70,15 @@ func NewController(client kubernetes.Interface) *Controller {
 	}
 }
 
-func indexObjects(queue workqueue.RateLimitingInterface, index *Index, kind string) {
+func indexObjects(queue workqueue.RateLimitingInterface, idx *index.Index, kind string) {
 	key, shutdown := queue.Get()
 
 	for !shutdown {
 		if namespace(key) != "" {
-			index.Put(tokenizer.DNSSubdomainNamesTokenizer(namespace(key)), Posting{Key: keyString(key), Kind: kind})
+			idx.Put(tokenizer.DNSSubdomainNamesTokenizer(namespace(key)), index.Posting{Key: keyString(key), Kind: kind})
 		}
 
-		index.Put(tokenizer.DNSSubdomainNamesTokenizer(name(key)), Posting{Key: keyString(key), Kind: kind})
+		idx.Put(tokenizer.DNSSubdomainNamesTokenizer(name(key)), index.Posting{Key: keyString(key), Kind: kind})
 
 		// XXX Support indexing annotations and labels
 

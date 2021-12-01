@@ -1,4 +1,6 @@
-package search
+// Package index provides an inverted index that supports fulltext
+// search.
+package index
 
 import (
 	"sync"
