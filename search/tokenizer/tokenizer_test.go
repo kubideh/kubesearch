@@ -6,31 +6,46 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDNSSubdomainNamesTokenizer(t *testing.T) {
+func TestTokenize(t *testing.T) {
 	cases := []struct {
 		name     string
 		text     string
 		expected []string
 	}{
 		{
+			name:     "an empty string",
+			text:     "",
+			expected: nil,
+		},
+		{
 			name:     "just a term",
 			text:     "simple",
 			expected: []string{"simple"},
 		},
 		{
-			name:     "hyphenated text",
-			text:     "dns-subdomain-name",
-			expected: []string{"dns", "subdomain", "name", "dns-subdomain-name"},
+			name:     "just a couple of terms",
+			text:     "multiple terms",
+			expected: []string{"multiple", "terms"},
 		},
 		{
-			name:     "dotted text",
-			text:     "dns.subdomain.name",
-			expected: []string{"dns", "subdomain", "name", "dns.subdomain.name"},
+			name:     "extranenous characters",
+			text:     ":::@@@---...   multiple :::@@@---...  terms  :::@@@---...",
+			expected: []string{"multiple", "terms"},
 		},
 		{
-			name:     "dotted and hyphenated text",
-			text:     "dns.sub-domain.name",
-			expected: []string{"dns", "sub", "domain", "name", "dns.sub-domain.name"},
+			name:     "a domain name",
+			text:     "blargle.example.com",
+			expected: []string{"blargle", "example", "com"},
+		},
+		{
+			name:     "a hyphenated string",
+			text:     "blargle-example-com",
+			expected: []string{"blargle", "example", "com"},
+		},
+		{
+			name:     "an image name",
+			text:     "foo.com/blargle:flargle@sha1234",
+			expected: []string{"foo", "com", "blargle", "flargle", "sha1234"},
 		},
 	}
 

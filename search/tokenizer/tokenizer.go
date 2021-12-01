@@ -3,17 +3,15 @@ package tokenizer
 import (
 	"bufio"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"k8s.io/klog/v2"
 )
 
-// Tokenize follows the rules for naming
-// objects in Kubernetes (https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-subdomain-names).
-// In addition to tokenizing on hyphens or dots, the exact name
-// is also returned as the first token. For example, for the name
-// `dns.sub-domain.name`, the following tokens are returned:
-// `dns`, `sub`, `domain`, `name`, and `dns.sub-domain.name`.
+// Tokenize uses the default Golang word scanner as a base, and it
+// applies additional separators such as colons, dots, and hyphens,
+// etc.
 func Tokenize(text string) (results []string) {
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	scanner.Split(scan)
@@ -26,40 +24,32 @@ func Tokenize(text string) (results []string) {
 		klog.Warningln("scanner error: ", err)
 	}
 
-	if len(results) > 1 {
-		results = append(results, text)
-	}
-
 	return
 }
 
-// scan is a split function for a Scanner that returns UTF-8 tokens
-// split on dots or hyphens. This algorithm is taken from bufio.ScanWords.
+// scan is based on bufio.ScanWords.
 func scan(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	// Skip leading spaces.
+	// Skip anything leading that isn't a digit or letter.
 	start := 0
 	for width := 0; start < len(data); start += width {
 		var r rune
 		r, width = utf8.DecodeRune(data[start:])
-		if r != '.' && r != '-' {
+		if unicode.IsDigit(r) || unicode.IsLetter(r) {
 			break
 		}
 	}
-
-	// Scan until dot or hyphen, marking end of word.
+	// Scan until something other than a digit or letter, marking end of word.
 	for width, i := 0, start; i < len(data); i += width {
 		var r rune
 		r, width = utf8.DecodeRune(data[i:])
-		if r == '.' || r == '-' {
+		if !unicode.IsDigit(r) && !unicode.IsLetter(r) {
 			return i + width, data[start:i], nil
 		}
 	}
-
 	// If we're at EOF, we have a final, non-empty, non-terminated word. Return it.
 	if atEOF && len(data) > start {
 		return len(data), data[start:], nil
 	}
-
 	// Request more data.
 	return start, nil, nil
 }
