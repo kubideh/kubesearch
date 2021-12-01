@@ -26,7 +26,6 @@ namespace, or labels.
 
 ```console
 brew install go
-brew install goreleaser
 ```
 
 ## Getting started
