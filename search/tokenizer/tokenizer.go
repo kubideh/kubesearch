@@ -8,7 +8,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// DNSSubdomainNameTokenizer follows the rules for naming
+// DNSSubdomainNamesTokenizer follows the rules for naming
 // objects in Kubernetes (https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-subdomain-names).
 // In addition to tokenizing on hyphens or dots, the exact name
 // is also returned as the first token. For example, for the name

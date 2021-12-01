@@ -11,6 +11,7 @@ import (
 	"github.com/kubideh/kubesearch/search"
 )
 
+// Search is the API used to query for Kubernetes objects.
 func Search(endpoint, query string) ([]search.Result, error) {
 	response, err := http.Get(fmt.Sprintf("%s/v1/search?query=%s", endpoint, query))
 

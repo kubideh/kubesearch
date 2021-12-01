@@ -18,6 +18,7 @@ type Controller struct {
 	informers       map[string]Informer
 }
 
+// Informer binds an informer and a workqueue.
 type Informer struct {
 	informer cache.SharedIndexInformer
 	queue    workqueue.RateLimitingInterface
