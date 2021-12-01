@@ -23,9 +23,9 @@ func main() {
 	client := createKubernetesClient(kubeconfig)
 
 	// create the Controller to be used by the search API handler
-	cont := controller.NewController(client)
+	cont := controller.New(client)
 
-	idx := index.NewIndex()
+	idx := index.New()
 
 	cancel := cont.Start(idx)
 	defer cancel()

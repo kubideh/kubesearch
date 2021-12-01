@@ -95,9 +95,9 @@ func testPodFlargleFoo() *corev1.Pod {
 func testSearch(t *testing.T, c testSearchCase) {
 	client := fake.NewSimpleClientset()
 
-	cont := controller.NewController(client)
+	cont := controller.New(client)
 
-	idx := index.NewIndex()
+	idx := index.New()
 
 	cancel := cont.Start(idx)
 	defer cancel()

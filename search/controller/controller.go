@@ -55,8 +55,8 @@ func (c *Controller) Start(idx *index.Index) context.CancelFunc {
 	return cancel
 }
 
-// NewController returns Controller objects.
-func NewController(client kubernetes.Interface) *Controller {
+// New returns Controller objects.
+func New(client kubernetes.Interface) *Controller {
 	factory := informers.NewSharedInformerFactory(client, 0)
 
 	// XXX Support the creation of informers by the caller.
@@ -75,10 +75,10 @@ func indexObjects(queue workqueue.RateLimitingInterface, idx *index.Index, kind 
 
 	for !shutdown {
 		if namespace(key) != "" {
-			idx.Put(tokenizer.DNSSubdomainNamesTokenizer(namespace(key)), index.Posting{Key: keyString(key), Kind: kind})
+			idx.Put(tokenizer.Tokenize(namespace(key)), index.Posting{Key: keyString(key), Kind: kind})
 		}
 
-		idx.Put(tokenizer.DNSSubdomainNamesTokenizer(name(key)), index.Posting{Key: keyString(key), Kind: kind})
+		idx.Put(tokenizer.Tokenize(name(key)), index.Posting{Key: keyString(key), Kind: kind})
 
 		// XXX Support indexing annotations and labels
 

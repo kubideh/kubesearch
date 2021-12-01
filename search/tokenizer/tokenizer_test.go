@@ -36,7 +36,7 @@ func TestDNSSubdomainNamesTokenizer(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			assert.Equal(t, c.expected, DNSSubdomainNamesTokenizer(c.text))
+			assert.Equal(t, c.expected, Tokenize(c.text))
 		})
 	}
 }

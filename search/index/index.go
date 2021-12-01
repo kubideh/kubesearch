@@ -40,8 +40,8 @@ func (idx *Index) Get(term string) (result []Posting, found bool) {
 	return
 }
 
-// NewIndex returns InvertedIndex objects.
-func NewIndex() *Index {
+// New returns InvertedIndex objects.
+func New() *Index {
 	return &Index{
 		index: make(map[string][]Posting),
 	}
