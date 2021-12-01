@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/kubideh/kubesearch/search"
+	"github.com/kubideh/kubesearch/search/api"
 	"github.com/kubideh/kubesearch/search/controller"
 	"github.com/kubideh/kubesearch/search/index"
 	"k8s.io/client-go/kubernetes"
@@ -31,7 +31,7 @@ func main() {
 	defer cancel()
 
 	mux := http.NewServeMux()
-	search.RegisterHandler(mux, idx, cont.Store())
+	api.RegisterHandler(mux, idx, cont.Store())
 
 	klog.Infoln("Listening on :8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {

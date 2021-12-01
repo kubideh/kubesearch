@@ -6,21 +6,19 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/fake"
-
-	"github.com/kubideh/kubesearch/search"
 	"github.com/kubideh/kubesearch/search/controller"
 	"github.com/kubideh/kubesearch/search/index"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 type testSearchCase struct {
 	name   string
 	query  string
-	result []search.Result
+	result []Result
 }
 
 func TestSearchAPI(t *testing.T) {
@@ -28,7 +26,7 @@ func TestSearchAPI(t *testing.T) {
 		{
 			name:  "search for pod by name",
 			query: "blargle",
-			result: []search.Result{
+			result: []Result{
 				{
 					Kind:      "Pod",
 					Name:      "blargle",
@@ -39,7 +37,7 @@ func TestSearchAPI(t *testing.T) {
 		{
 			name:  "search for pod by namespace",
 			query: "flargle",
-			result: []search.Result{
+			result: []Result{
 				{
 					Kind:      "Pod",
 					Name:      "blargle",
@@ -55,12 +53,12 @@ func TestSearchAPI(t *testing.T) {
 		{
 			name:   "search for missing object",
 			query:  "whatever",
-			result: []search.Result{},
+			result: []Result{},
 		},
 		{
 			name:   "search using empty query",
 			query:  "",
-			result: []search.Result{},
+			result: []Result{},
 		},
 	}
 
@@ -105,7 +103,7 @@ func testSearch(t *testing.T, c testSearchCase) {
 	defer cancel()
 
 	mux := http.NewServeMux()
-	search.RegisterHandler(mux, idx, cont.Store())
+	RegisterHandler(mux, idx, cont.Store())
 
 	server := httptest.NewServer(mux)
 	defer server.Close()

@@ -1,7 +1,7 @@
 // Package search provides the API for searching for Kubernetes
 // objects. Currently, just one method for querying exists, and
 // it's endpoint is `/v1/search?query=`.
-package search
+package api
 
 import (
 	"encoding/json"
