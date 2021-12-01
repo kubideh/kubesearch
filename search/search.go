@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
@@ -103,7 +102,7 @@ func resultsFromPostings(postings []Posting, store map[string]cache.Store) ([]Re
 	return results, nil
 }
 
-func resultFromDeployment(deployment *v1.Deployment) Result {
+func resultFromDeployment(deployment *appsv1.Deployment) Result {
 	return Result{
 		Kind:      "Deployment",
 		Name:      deployment.GetName(),
