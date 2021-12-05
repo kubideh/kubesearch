@@ -1,6 +1,5 @@
 // Package search provides the API for searching for Kubernetes
-// objects. Currently, just one method for querying exists, and
-// it's endpoint is `/v1/search?query=`.
+// objects. Currently, just one method for querying exists.
 package api
 
 import (
@@ -15,9 +14,14 @@ import (
 	"k8s.io/klog/v2"
 )
 
+const (
+	endpointPath   = "/v1/search"
+	queryParamName = "query"
+)
+
 // RegisterHandler registers the search API handler with the given mux.
 func RegisterHandler(mux *http.ServeMux, idx *index.Index, store map[string]cache.Store) {
-	mux.HandleFunc("/v1/search", Handler(idx, store))
+	mux.HandleFunc(endpointPath, Handler(idx, store))
 }
 
 // Result is a single result entry.
@@ -30,7 +34,7 @@ type Result struct {
 // Handler is an http.HandlerFunc that responds with query results.
 func Handler(idx *index.Index, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		values, ok := request.URL.Query()["query"]
+		values, ok := request.URL.Query()[queryParamName]
 
 		if !ok || values[0] == "" {
 			writeEmptyOutput(writer)

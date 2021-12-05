@@ -11,7 +11,7 @@ import (
 
 // Search is the API used to query for Kubernetes objects.
 func Search(endpoint, query string) ([]Result, error) {
-	response, err := http.Get(fmt.Sprintf("%s/v1/search?query=%s", endpoint, query))
+	response, err := http.Get(fmt.Sprintf("%s%s?%s=%s", endpoint, endpointPath, queryParamName, query))
 
 	if err != nil {
 		return []Result{}, err
