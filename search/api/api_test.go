@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/kubideh/kubesearch/search/controller"
-	"github.com/kubideh/kubesearch/search/index"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
@@ -95,15 +94,12 @@ func testPodFlargleFoo() *corev1.Pod {
 func testSearch(t *testing.T, c testSearchCase) {
 	client := fake.NewSimpleClientset()
 
-	cont := controller.New(client)
-
-	idx := index.New()
-
-	cancel := cont.Start(idx)
+	aController := controller.New(client)
+	cancel := aController.Start()
 	defer cancel()
 
 	mux := http.NewServeMux()
-	RegisterHandler(mux, idx, cont.Store())
+	RegisterHandler(mux, aController.Index(), aController.Store())
 
 	server := httptest.NewServer(mux)
 	defer server.Close()

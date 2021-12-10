@@ -18,41 +18,9 @@ import (
 
 // Controller is an informer, a workqueue, and an inverted index.
 type Controller struct {
+	index           *index.Index
 	informerFactory informers.SharedInformerFactory
-	informers       map[string]Informer
-}
-
-// Informer binds an informer and a workqueue.
-type Informer struct {
-	informer cache.SharedIndexInformer
-	queue    workqueue.RateLimitingInterface
-}
-
-// Store returns the object store.
-func (c *Controller) Store() map[string]cache.Store {
-	result := make(map[string]cache.Store)
-
-	for k := range c.informers {
-		result[k] = c.informers[k].informer.GetStore()
-	}
-
-	return result
-}
-
-// Start this controller. The caller should defer the call to the
-// return cancel function.
-func (c *Controller) Start(idx *index.Index) context.CancelFunc {
-	for kind, informer := range c.informers {
-		go indexObjects(informer.queue, idx, kind)
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	c.informerFactory.Start(ctx.Done())
-
-	c.informerFactory.WaitForCacheSync(ctx.Done())
-
-	return cancel
+	informers       map[string]informerWorkqueuePair
 }
 
 // New returns Controller objects.
@@ -62,12 +30,55 @@ func New(client kubernetes.Interface) *Controller {
 	// XXX Support the creation of informers by the caller.
 
 	return &Controller{
+		index:           index.New(),
 		informerFactory: factory,
-		informers: map[string]Informer{
-			"Deployment": newInformer(factory.Apps().V1().Deployments().Informer(), "Deployment-queue"),
-			"Pod":        newInformer(factory.Core().V1().Pods().Informer(), "Pod-queue"),
+		informers: map[string]informerWorkqueuePair{
+			"Deployment": bindInformerToNewWorkqueue(factory.Apps().V1().Deployments().Informer(), "Deployment-queue"),
+			"Pod":        bindInformerToNewWorkqueue(factory.Core().V1().Pods().Informer(), "Pod-queue"),
 		},
 	}
+}
+
+// Index returns the index bound to this Controller.
+func (c *Controller) Index() *index.Index {
+	return c.index
+}
+
+// Store returns the object store.
+func (c *Controller) Store() map[string]cache.Store {
+	result := make(map[string]cache.Store)
+
+	for k := range c.informers {
+		result[k] = c.store(k)
+	}
+
+	return result
+}
+
+func (c *Controller) store(kind string) cache.Store {
+	return c.informers[kind].informer.GetStore()
+}
+
+// Start this controller. The caller should defer the call to the
+// return cancel function.
+func (c *Controller) Start() context.CancelFunc {
+	c.startIndexers()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	c.informerFactory.Start(ctx.Done())
+	c.informerFactory.WaitForCacheSync(ctx.Done())
+
+	return cancel
+}
+
+func (c *Controller) startIndexers() {
+	for kind, informer := range c.informers {
+		startIndexer(informer.queue, c.index, kind)
+	}
+}
+
+func startIndexer(queue workqueue.RateLimitingInterface, idx *index.Index, kind string) {
+	go indexObjects(queue, idx, kind)
 }
 
 func indexObjects(queue workqueue.RateLimitingInterface, idx *index.Index, kind string) {
@@ -114,9 +125,28 @@ func name(key interface{}) (result string) {
 	return
 }
 
-func newInformer(informer cache.SharedIndexInformer, name string) Informer {
+func bindInformerToNewWorkqueue(informer cache.SharedIndexInformer, name string) informerWorkqueuePair {
 	queue := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), name)
 
+	addEventHandlerToInformerUsingQueue(informer, queue)
+
+	return newInformerWorkqueuePair(informer, queue)
+}
+
+// informerWorkqueuePair binds an informer and a workqueue.
+type informerWorkqueuePair struct {
+	informer cache.SharedIndexInformer
+	queue    workqueue.RateLimitingInterface
+}
+
+func newInformerWorkqueuePair(informer cache.SharedIndexInformer, queue workqueue.RateLimitingInterface) informerWorkqueuePair {
+	return informerWorkqueuePair{
+		informer: informer,
+		queue:    queue,
+	}
+}
+
+func addEventHandlerToInformerUsingQueue(informer cache.SharedIndexInformer, queue workqueue.RateLimitingInterface) {
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			key, err := cache.MetaNamespaceKeyFunc(obj)
@@ -127,9 +157,4 @@ func newInformer(informer cache.SharedIndexInformer, name string) Informer {
 			}
 		},
 	})
-
-	return Informer{
-		informer: informer,
-		queue:    queue,
-	}
 }
