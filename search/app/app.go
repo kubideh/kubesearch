@@ -16,6 +16,7 @@ import (
 // New returns App objects.
 func New() App {
 	return App{
+		endpoint:   flag.String("bind-address", ":8080", "IP address and port on which to listen"),
 		kubeconfig: kubeconfigFlag(),
 	}
 }
@@ -31,6 +32,7 @@ func kubeconfigFlag() (kubeconfig *string) {
 
 // App provides everything needed to run kubesearch.
 type App struct {
+	endpoint   *string
 	kubeconfig *string
 }
 
@@ -48,8 +50,8 @@ func (a App) Run() {
 	mux := http.NewServeMux()
 	api.RegisterHandler(mux, aController.Index(), aController.Store())
 
-	klog.Infoln("Listening on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	klog.Infoln("Listening on " + *a.endpoint)
+	if err := http.ListenAndServe(*a.endpoint, mux); err != nil {
 		klog.Fatalln(err)
 	}
 }
