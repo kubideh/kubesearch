@@ -31,20 +31,28 @@ type Result struct {
 	Namespace string `json:"namespaces,omitempty"`
 }
 
+func query(request *http.Request) string {
+	values, ok := request.URL.Query()[queryParamName]
+
+	if !ok || len(values) == 0 {
+		return ""
+	}
+
+	return values[0]
+}
+
 // Handler is an http.HandlerFunc that responds with query results.
 func Handler(idx *index.Index, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		values, ok := request.URL.Query()[queryParamName]
-
-		if !ok || values[0] == "" {
-			writeEmptyOutput(writer)
+		if query(request) == "" {
+			writeResults(writer, nil)
 			return
 		}
 
-		postings, found := idx.Get(values[0])
+		postings, found := idx.Get(query(request))
 
 		if !found {
-			writeEmptyOutput(writer)
+			writeResults(writer, nil)
 			return
 		}
 
@@ -52,8 +60,6 @@ func Handler(idx *index.Index, store map[string]cache.Store) func(http.ResponseW
 
 		if err != nil {
 			klog.Errorln(err)
-			writeEmptyOutput(writer)
-			return
 		}
 
 		writeResults(writer, objects)
@@ -121,9 +127,4 @@ func resultFromPod(pod *corev1.Pod) Result {
 		Name:      pod.GetName(),
 		Namespace: pod.GetNamespace(),
 	}
-}
-
-func writeEmptyOutput(writer http.ResponseWriter) {
-	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-	io.WriteString(writer, "[]")
 }
