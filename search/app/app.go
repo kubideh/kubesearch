@@ -13,7 +13,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// New returns App objects.
+// New returns server App objects.
 func New() App {
 	return App{
 		endpoint:   flag.String("bind-address", ":8080", "IP address and port on which to listen"),

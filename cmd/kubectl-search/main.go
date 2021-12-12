@@ -5,5 +5,5 @@ package main
 import "github.com/kubideh/kubesearch/search/client"
 
 func main() {
-	client.Run()
+	client.New().Run()
 }
