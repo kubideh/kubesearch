@@ -23,23 +23,6 @@ func RegisterHandler(mux *http.ServeMux, idx *index.Index, store map[string]cach
 	mux.HandleFunc(endpointPath, Handler(idx, store))
 }
 
-// Result is a single result entry.
-type Result struct {
-	Kind      string `json:"kind,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Namespace string `json:"namespaces,omitempty"`
-}
-
-func query(request *http.Request) string {
-	values, ok := request.URL.Query()[queryParamName]
-
-	if !ok || len(values) == 0 {
-		return ""
-	}
-
-	return values[0]
-}
-
 // Handler is an http.HandlerFunc that responds with query results.
 func Handler(idx *index.Index, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
@@ -63,6 +46,23 @@ func Handler(idx *index.Index, store map[string]cache.Store) func(http.ResponseW
 
 		writeResults(writer, objects)
 	}
+}
+
+func query(request *http.Request) string {
+	values, ok := request.URL.Query()[queryParamName]
+
+	if !ok || len(values) == 0 {
+		return ""
+	}
+
+	return values[0]
+}
+
+// Result is a single result entry.
+type Result struct {
+	Kind      string `json:"kind,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Namespace string `json:"namespaces,omitempty"`
 }
 
 func writeResults(writer http.ResponseWriter, objects []Result) {
