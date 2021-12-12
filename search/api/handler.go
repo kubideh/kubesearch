@@ -4,6 +4,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/kubideh/kubesearch/search/index"
@@ -26,14 +27,9 @@ func RegisterHandler(mux *http.ServeMux, search index.SearchFunc, store map[stri
 // Handler is an http.HandlerFunc that responds with query results.
 func Handler(search index.SearchFunc, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		if query(request) == "" {
-			writeResults(writer, nil)
-			return
-		}
-
 		postings := search(query(request))
 
-		objects, err := resultsFromPostings(postings, store)
+		objects, err := lookupObjects(postings, store)
 
 		if err != nil {
 			klog.Errorln(err)
@@ -70,7 +66,7 @@ func writeResults(writer http.ResponseWriter, objects []Result) {
 	}
 }
 
-func resultsFromPostings(postings []index.Posting, store map[string]cache.Store) ([]Result, error) {
+func lookupObjects(postings []index.Posting, store map[string]cache.Store) ([]Result, error) {
 	var results []Result
 
 	for _, p := range postings {
@@ -81,7 +77,7 @@ func resultsFromPostings(postings []index.Posting, store map[string]cache.Store)
 		}
 
 		if !exists {
-			return results, err
+			return results, fmt.Errorf("missing object for key %v", p.Key)
 		}
 
 		// XXX Refactor this to make it dynamic; not dependent on Kind.
