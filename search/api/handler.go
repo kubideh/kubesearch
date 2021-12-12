@@ -4,7 +4,6 @@ package api
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 
 	"github.com/kubideh/kubesearch/search/index"
@@ -69,21 +68,11 @@ func Handler(idx *index.Index, store map[string]cache.Store) func(http.ResponseW
 func writeResults(writer http.ResponseWriter, objects []Result) {
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	io.WriteString(writer, "[")
+	encoder := json.NewEncoder(writer)
 
-	for i, o := range objects {
-		if i != 0 {
-			io.WriteString(writer, ",")
-		}
-		entry, err := json.Marshal(o)
-		if err != nil {
-			klog.Warningln("error marshaling result: ", err)
-			continue
-		}
-		io.WriteString(writer, string(entry))
+	if err := encoder.Encode(objects); err != nil {
+		klog.Warningln("error marshaling result: ", err)
 	}
-
-	io.WriteString(writer, "]")
 }
 
 func resultsFromPostings(postings []index.Posting, store map[string]cache.Store) ([]Result, error) {
