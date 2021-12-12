@@ -2,6 +2,7 @@ package app
 
 import (
 	"flag"
+	"github.com/kubideh/kubesearch/search/index"
 	"net/http"
 	"path/filepath"
 
@@ -48,7 +49,7 @@ func (a App) Run() {
 	defer cancel()
 
 	mux := http.NewServeMux()
-	api.RegisterHandler(mux, aController.Index(), aController.Store())
+	api.RegisterHandler(mux, index.Searcher(aController.Index()), aController.Store())
 
 	klog.Infoln("Listening on " + *a.endpoint)
 	if err := http.ListenAndServe(*a.endpoint, mux); err != nil {

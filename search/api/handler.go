@@ -19,19 +19,19 @@ const (
 )
 
 // RegisterHandler registers the search API handler with the given mux.
-func RegisterHandler(mux *http.ServeMux, idx *index.Index, store map[string]cache.Store) {
-	mux.HandleFunc(endpointPath, Handler(idx, store))
+func RegisterHandler(mux *http.ServeMux, search index.SearchFunc, store map[string]cache.Store) {
+	mux.HandleFunc(endpointPath, Handler(search, store))
 }
 
 // Handler is an http.HandlerFunc that responds with query results.
-func Handler(idx *index.Index, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
+func Handler(search index.SearchFunc, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		if query(request) == "" {
 			writeResults(writer, nil)
 			return
 		}
 
-		postings := idx.Get(query(request))
+		postings := search(query(request))
 
 		objects, err := resultsFromPostings(postings, store)
 

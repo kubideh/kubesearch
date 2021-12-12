@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"github.com/kubideh/kubesearch/search/index"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -93,7 +94,7 @@ func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
 	cancel := aController.Start()
 
 	mux := http.NewServeMux()
-	RegisterHandler(mux, aController.Index(), aController.Store())
+	RegisterHandler(mux, index.Searcher(aController.Index()), aController.Store())
 
 	server := httptest.NewServer(mux)
 
