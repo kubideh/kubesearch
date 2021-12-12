@@ -14,56 +14,95 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-type testSearchCase struct {
-	name   string
-	query  string
-	result []Result
+func TestSearch_emptyQuery(t *testing.T) {
+	server, cancel := setup(t)
+	defer server.Close()
+	defer cancel()
+
+	result, err := Search(server.URL, "")
+
+	assert.NoError(t, err)
+	assert.Empty(t, result)
 }
 
-func TestSearchAPI(t *testing.T) {
-	cases := []testSearchCase{
+func TestSearch_queryForMissingObjects(t *testing.T) {
+	server, cancel := setup(t)
+	defer server.Close()
+	defer cancel()
+
+	result, err := Search(server.URL, "whatever")
+
+	assert.NoError(t, err)
+	assert.Empty(t, result)
+}
+
+func TestSearch_queryUsingMultipleTerms(t *testing.T) {
+	server, cancel := setup(t)
+	defer server.Close()
+	defer cancel()
+
+	result, err := Search(server.URL, "search for something")
+
+	assert.NoError(t, err)
+	assert.Empty(t, result)
+}
+
+func TestSearch_queryForSinglePod(t *testing.T) {
+	server, cancel := setup(t)
+	defer server.Close()
+	defer cancel()
+
+	result, err := Search(server.URL, "blargle")
+
+	assert.NoError(t, err)
+	assert.Equal(t, []Result{
 		{
-			name:  "search for pod by name",
-			query: "blargle",
-			result: []Result{
-				{
-					Kind:      "Pod",
-					Name:      "blargle",
-					Namespace: "flargle",
-				},
-			},
+			Kind:      "Pod",
+			Name:      "blargle",
+			Namespace: "flargle",
+		},
+	}, result)
+}
+
+func TestSearch_queryForAllPodsInNamespace(t *testing.T) {
+	server, cancel := setup(t)
+	defer server.Close()
+	defer cancel()
+
+	result, err := Search(server.URL, "flargle")
+
+	assert.NoError(t, err)
+	assert.Equal(t, []Result{
+		{
+			Kind:      "Pod",
+			Name:      "blargle",
+			Namespace: "flargle",
 		},
 		{
-			name:  "search for pod by namespace",
-			query: "flargle",
-			result: []Result{
-				{
-					Kind:      "Pod",
-					Name:      "blargle",
-					Namespace: "flargle",
-				},
-				{
-					Kind:      "Pod",
-					Name:      "foo",
-					Namespace: "flargle",
-				},
-			},
+			Kind:      "Pod",
+			Name:      "foo",
+			Namespace: "flargle",
 		},
-		{
-			name:   "search for missing object",
-			query:  "whatever",
-			result: []Result{},
-		},
-		{
-			name:   "search using empty query",
-			query:  "",
-			result: []Result{},
-		},
+	}, result)
+}
+
+func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
+	client := fake.NewSimpleClientset()
+
+	aController := controller.New(client)
+	cancel := aController.Start()
+
+	mux := http.NewServeMux()
+	RegisterHandler(mux, aController.Index(), aController.Store())
+
+	server := httptest.NewServer(mux)
+
+	for _, p := range testPods() {
+		_, err := client.CoreV1().Pods(p.GetNamespace()).Create(context.TODO(), p, metav1.CreateOptions{})
+		require.NoError(t, err)
 	}
 
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) { testSearch(t, c) })
-	}
+	return server, cancel
 }
 
 func testPods() []*corev1.Pod {
@@ -89,32 +128,4 @@ func testPodFlargleFoo() *corev1.Pod {
 			Namespace: "flargle",
 		},
 	}
-}
-
-func testSearch(t *testing.T, c testSearchCase) {
-	client := fake.NewSimpleClientset()
-
-	aController := controller.New(client)
-	cancel := aController.Start()
-	defer cancel()
-
-	mux := http.NewServeMux()
-	RegisterHandler(mux, aController.Index(), aController.Store())
-
-	server := httptest.NewServer(mux)
-	defer server.Close()
-
-	for _, p := range testPods() {
-		_, err := client.CoreV1().Pods(p.GetNamespace()).Create(context.TODO(), p, metav1.CreateOptions{})
-		require.NoError(t, err)
-	}
-
-	t.Log("query: ", c.query)
-
-	result, err := Search(server.URL, c.query)
-
-	t.Log("result: ", c.result)
-
-	assert.NoError(t, err)
-	assert.Equal(t, c.result, result)
 }

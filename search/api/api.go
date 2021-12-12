@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
 // Search is the API used to query for Kubernetes objects.
 func Search(endpoint, query string) ([]Result, error) {
-	response, err := http.Get(fmt.Sprintf("%s%s?%s=%s", endpoint, endpointPath, queryParamName, query))
+	response, err := http.Get(searchURL(endpoint, query))
 
 	if err != nil {
 		return []Result{}, err
@@ -31,4 +32,8 @@ func Search(endpoint, query string) ([]Result, error) {
 	}
 
 	return result, nil
+}
+
+func searchURL(endpoint, query string) string {
+	return fmt.Sprintf("%s%s?%s=%s", endpoint, endpointPath, queryParamName, url.QueryEscape(query))
 }
