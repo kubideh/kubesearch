@@ -1,4 +1,4 @@
-// Package search provides the API for searching for Kubernetes
+// Package api provides the API for searching for Kubernetes
 // objects. Currently, just one method for querying exists.
 package api
 
@@ -31,12 +31,7 @@ func Handler(idx *index.Index, store map[string]cache.Store) func(http.ResponseW
 			return
 		}
 
-		postings, found := idx.Get(query(request))
-
-		if !found {
-			writeResults(writer, nil)
-			return
-		}
+		postings := idx.Get(query(request))
 
 		objects, err := resultsFromPostings(postings, store)
 

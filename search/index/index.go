@@ -31,13 +31,11 @@ func (idx *Index) Put(terms []string, posting Posting) {
 }
 
 // Get looks up a posting list in the search index using the given term.
-func (idx *Index) Get(term string) (result []Posting, found bool) {
+func (idx *Index) Get(term string) []Posting {
 	idx.mutex.RLock()
 	defer idx.mutex.RUnlock()
 
-	result, found = idx.index[term]
-
-	return
+	return idx.index[term]
 }
 
 // New returns InvertedIndex objects.
