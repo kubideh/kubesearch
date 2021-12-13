@@ -84,12 +84,14 @@ func startIndexer(queue workqueue.RateLimitingInterface, idx *index.Index, kind 
 func indexObjects(queue workqueue.RateLimitingInterface, idx *index.Index, kind string) {
 	key, shutdown := queue.Get()
 
+	tokenize := tokenizer.Tokenizer()
+
 	for !shutdown {
 		if namespace(key) != "" {
-			idx.Put(tokenizer.Tokenize(namespace(key)), index.Posting{Key: keyString(key), Kind: kind})
+			idx.Put(tokenize(namespace(key)), index.Posting{Key: keyString(key), Kind: kind})
 		}
 
-		idx.Put(tokenizer.Tokenize(name(key)), index.Posting{Key: keyString(key), Kind: kind})
+		idx.Put(tokenize(name(key)), index.Posting{Key: keyString(key), Kind: kind})
 
 		// XXX Support indexing annotations and labels
 

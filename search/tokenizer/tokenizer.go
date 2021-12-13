@@ -9,10 +9,20 @@ import (
 	"k8s.io/klog/v2"
 )
 
+// TokenizeFunc is a naive tokenizer.
+type TokenizeFunc func(text string) []string
+
+// Tokenizer returns the default tokenize functor.
+func Tokenizer() TokenizeFunc {
+	return func(text string) []string {
+		return tokenize(text)
+	}
+}
+
 // Tokenize uses the default Golang word scanner as a base, and it
 // applies additional separators such as colons, dots, and hyphens,
 // etc.
-func Tokenize(text string) (results []string) {
+func tokenize(text string) (results []string) {
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	scanner.Split(scan)
 

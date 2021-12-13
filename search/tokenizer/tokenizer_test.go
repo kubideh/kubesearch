@@ -51,7 +51,7 @@ func TestTokenize(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			assert.Equal(t, c.expected, Tokenize(c.text))
+			assert.Equal(t, c.expected, Tokenizer()(c.text))
 		})
 	}
 }

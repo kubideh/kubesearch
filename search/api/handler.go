@@ -5,6 +5,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/kubideh/kubesearch/search/searcher"
 	"net/http"
 
 	"github.com/kubideh/kubesearch/search/index"
@@ -20,12 +21,12 @@ const (
 )
 
 // RegisterHandler registers the search API handler with the given mux.
-func RegisterHandler(mux *http.ServeMux, search index.SearchFunc, store map[string]cache.Store) {
+func RegisterHandler(mux *http.ServeMux, search searcher.SearchFunc, store map[string]cache.Store) {
 	mux.HandleFunc(endpointPath, Handler(search, store))
 }
 
 // Handler is an http.HandlerFunc that responds with query results.
-func Handler(search index.SearchFunc, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
+func Handler(search searcher.SearchFunc, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		postings := search(query(request))
 

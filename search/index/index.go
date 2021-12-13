@@ -3,6 +3,8 @@
 package index
 
 import (
+	"fmt"
+	"sort"
 	"sync"
 )
 
@@ -11,6 +13,26 @@ import (
 type Posting struct {
 	Key  string
 	Kind string
+}
+
+// DocID is the document identifier, and it's a string with the
+// form <Kind>/<Optional namespace>/<Object name>.
+func (p Posting) DocID() string {
+	return fmt.Sprintf("%s/%s", p.Kind, p.Key)
+}
+
+type PostingsList []Posting
+
+func (p PostingsList) Len() int {
+	return len(p)
+}
+
+func (p PostingsList) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
+}
+
+func (p PostingsList) Less(i, j int) bool {
+	return p[i].DocID() < p[j].DocID()
 }
 
 // Index maps terms to object keys.
@@ -26,8 +48,26 @@ func (idx *Index) Put(terms []string, posting Posting) {
 	defer idx.mutex.Unlock()
 
 	for _, t := range terms {
-		idx.index[t] = append(idx.index[t], posting)
+		postings := idx.index[t]
+
+		if contains(postings, posting) {
+			return
+		}
+
+		postings = append(postings, posting)
+		sort.Sort(PostingsList(postings))
+		idx.index[t] = postings
 	}
+}
+
+func contains(postings []Posting, item Posting) bool {
+	for _, p := range postings {
+		if p.DocID() == item.DocID() {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Get looks up a posting list in the search index using the given term.
