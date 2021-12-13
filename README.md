@@ -61,9 +61,8 @@ kubectl search \"nginx:alpine\"
 
 ## To do
 
-1. Don't store duplicate postings in the same postings list; increment term frequency instead
-2. Parse queries into terms and combine results
-3. Basic ranked retrieval by term frequency
-4. Combine results to support exact phrases
-5. Index annotations, container names, images names, labels, and volume names
+1. Basic ranked retrieval by term frequency
+2. Combine results to support exact phrases
+3. Index annotations, container names, images names, labels, and volume names
+4. Index arbitrary object fields
 
