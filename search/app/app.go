@@ -2,9 +2,11 @@ package app
 
 import (
 	"flag"
-	"github.com/kubideh/kubesearch/search/searcher"
 	"net/http"
 	"path/filepath"
+
+	"github.com/kubideh/kubesearch/search/searcher"
+	"github.com/kubideh/kubesearch/search/tokenizer"
 
 	"github.com/kubideh/kubesearch/search/api"
 	"github.com/kubideh/kubesearch/search/controller"
@@ -49,7 +51,7 @@ func (a App) Run() {
 	defer cancel()
 
 	mux := http.NewServeMux()
-	api.RegisterHandler(mux, searcher.Searcher(aController.Index()), aController.Store())
+	api.RegisterHandler(mux, searcher.Searcher(aController.Index(), tokenizer.Tokenizer()), aController.Store())
 
 	klog.Infoln("Listening on " + *a.endpoint)
 	if err := http.ListenAndServe(*a.endpoint, mux); err != nil {

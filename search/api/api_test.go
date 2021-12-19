@@ -2,10 +2,12 @@ package api
 
 import (
 	"context"
-	"github.com/kubideh/kubesearch/search/searcher"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/kubideh/kubesearch/search/searcher"
+	"github.com/kubideh/kubesearch/search/tokenizer"
 
 	"github.com/kubideh/kubesearch/search/controller"
 	"github.com/stretchr/testify/assert"
@@ -94,7 +96,7 @@ func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
 	cancel := aController.Start()
 
 	mux := http.NewServeMux()
-	RegisterHandler(mux, searcher.Searcher(aController.Index()), aController.Store())
+	RegisterHandler(mux, searcher.Searcher(aController.Index(), tokenizer.Tokenizer()), aController.Store())
 
 	server := httptest.NewServer(mux)
 

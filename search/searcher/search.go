@@ -9,9 +9,8 @@ import (
 type SearchFunc func(query string) []index.Posting
 
 // Searcher returns the default search functor.
-func Searcher(idx *index.Index) SearchFunc {
+func Searcher(idx *index.Index, tokenize tokenizer.TokenizeFunc) SearchFunc {
 	return func(query string) []index.Posting {
-		tokenize := tokenizer.Tokenizer()
 		terms := tokenize(query)
 		//sort.Strings(terms)
 
