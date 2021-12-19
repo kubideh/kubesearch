@@ -34,9 +34,8 @@ builds:
     main: ./cmd/kubectl-search
 dockers:
   - image_templates:
-      - "docker.io/evanmcclure/kubesearch:{{ .Version }}"
+      - "docker.io/evanmccluregmail/kubideh-kubesearch:{{ .Version }}"
     dockerfile: Dockerfile
-    skip_push: true
 archives:
   - replacements:
       darwin: Darwin
