@@ -36,6 +36,7 @@ dockers:
   - image_templates:
       - "docker.io/evanmcclure/kubesearch:{{ .Version }}"
     dockerfile: Dockerfile
+    skip_push: true
 archives:
   - replacements:
       darwin: Darwin

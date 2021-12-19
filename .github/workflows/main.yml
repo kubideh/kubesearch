@@ -34,4 +34,6 @@ jobs:
       - name: GoReleaser Action
         uses: goreleaser/goreleaser-action@v2.8.0
         with:
-          args: build --snapshot
+          args: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
