@@ -56,8 +56,11 @@ kubectl search \"nginx:alpine\"
 
 ## To do
 
-1. Basic ranked retrieval by term frequency
-2. Combine results to support exact phrases
-3. Index annotations, container names, images names, labels, and volume names
-4. Index arbitrary object fields
-
+1. Develop a better tokenizer using [ANTLR4](https://github.com/antlr/antlr4/blob/master/doc/go-target.md)
+2. Normalize terms to lowercase
+3. Support basic ranked retrieval using term frequency
+4. Support phrase-search (searching for exact phrases which may include token separators)
+5. Index annotations, container names, images names, labels, and volume names
+6. Index arbitrary object fields
+7. Make indexable fields configurable
+8. Use a treap
