@@ -23,16 +23,11 @@ Kubesearch and the client kubectl-search let the user **search**
 for relevant API objects without having to know the exact name,
 namespace, or labels.
 
-## Requirements
-
-```console
-brew install go
-```
-
 ## Getting started
 
+Include steps to pull a container or install a release.
+
 ```console
-go install ./...
 ```
 
 ## Usage
