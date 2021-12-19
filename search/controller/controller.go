@@ -21,6 +21,7 @@ type Controller struct {
 	index           *index.Index
 	informerFactory informers.SharedInformerFactory
 	informers       map[string]informerWorkqueuePair
+	tokenizer       tokenizer.TokenizeFunc
 }
 
 // New returns Controller objects.
@@ -36,6 +37,7 @@ func New(client kubernetes.Interface) *Controller {
 			"Deployment": bindInformerToNewWorkqueue(factory.Apps().V1().Deployments().Informer(), "Deployment-queue"),
 			"Pod":        bindInformerToNewWorkqueue(factory.Core().V1().Pods().Informer(), "Pod-queue"),
 		},
+		tokenizer: tokenizer.Tokenizer(),
 	}
 }
 
@@ -73,18 +75,16 @@ func (c *Controller) Start() context.CancelFunc {
 
 func (c *Controller) startIndexers() {
 	for kind, informer := range c.informers {
-		startIndexer(informer.queue, c.index, kind)
+		startIndexer(informer.queue, c.index, c.tokenizer, kind)
 	}
 }
 
-func startIndexer(queue workqueue.RateLimitingInterface, idx *index.Index, kind string) {
-	go indexObjects(queue, idx, kind)
+func startIndexer(queue workqueue.RateLimitingInterface, idx *index.Index, tokenize tokenizer.TokenizeFunc, kind string) {
+	go indexObjects(queue, idx, tokenize, kind)
 }
 
-func indexObjects(queue workqueue.RateLimitingInterface, idx *index.Index, kind string) {
+func indexObjects(queue workqueue.RateLimitingInterface, idx *index.Index, tokenize tokenizer.TokenizeFunc, kind string) {
 	key, shutdown := queue.Get()
-
-	tokenize := tokenizer.Tokenizer()
 
 	for !shutdown {
 		if namespace(key) != "" {
