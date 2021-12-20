@@ -57,10 +57,13 @@ kubectl search \"nginx:alpine\"
 ## To do
 
 1. Develop a better tokenizer using [ANTLR4](https://github.com/antlr/antlr4/blob/master/doc/go-target.md)
-2. Normalize terms to lowercase
-3. Support basic ranked retrieval using term frequency
-4. Support phrase-search (searching for exact phrases which may include token separators)
-5. Index annotations, container names, images names, labels, and volume names
-6. Index arbitrary object fields
-7. Make indexable fields configurable
-8. Use a treap
+  - Basic alphanumeric segmentation
+  - Treat any non-alphanumeric characters as separators
+  - Throw away empty terms
+3. Normalize terms to lowercase
+4. Support basic ranked retrieval using term frequency
+5. Support phrase-search (searching for exact phrases which may include token separators)
+6. Index annotations, container names, images names, labels, and volume names
+7. Index arbitrary object fields
+8. Make indexable fields configurable
+9. Use a treap
