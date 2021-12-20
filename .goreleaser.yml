@@ -34,7 +34,7 @@ builds:
     main: ./cmd/kubectl-search
 dockers:
   - image_templates:
-      - "docker.io/evanmccluregmail/kubideh-kubesearch:{{ .Version }}"
+      - evanmccluregmail/kubideh-kubesearch
     dockerfile: Dockerfile
 archives:
   - replacements:
