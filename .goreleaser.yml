@@ -41,7 +41,6 @@ archives:
       darwin: Darwin
       linux: Linux
       windows: Windows
-      386: i386
       amd64: x86_64
 checksum:
   name_template: 'checksums.txt'
@@ -53,3 +52,5 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+release:
+  
