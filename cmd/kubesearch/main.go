@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/kubideh/kubesearch/search/app"
+	"github.com/kubideh/kubesearch/app"
 )
 
 func main() {

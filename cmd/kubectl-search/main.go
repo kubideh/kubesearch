@@ -2,7 +2,9 @@
 // kubectl-search; nothing else.
 package main
 
-import "github.com/kubideh/kubesearch/search/client"
+import (
+	"github.com/kubideh/kubesearch/client"
+)
 
 func main() {
 	client.New().Run()
