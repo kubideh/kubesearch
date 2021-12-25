@@ -13,7 +13,7 @@ import (
 
 // Create configures and returns a new App.
 func Create() App {
-	flags := newFlags()
+	flags := NewFlags()
 	flags.Parse()
 
 	client := kubeClientFrom(flags)
@@ -24,7 +24,7 @@ func Create() App {
 }
 
 // New returns server App objects.
-func New(flags immutableFlags, aController *controller.Controller) App {
+func New(flags ImmutableFlags, aController *controller.Controller) App {
 	return App{
 		controller: aController,
 		flags:      flags,
@@ -35,13 +35,13 @@ func New(flags immutableFlags, aController *controller.Controller) App {
 // App provides everything needed to run KubeSearch.
 type App struct {
 	controller *controller.Controller
-	flags      immutableFlags
+	flags      ImmutableFlags
 	mux        *http.ServeMux
 }
 
 // Run starts the given Controller and registers the Search API
 // handler.
-func (a App) Run() {
+func (a App) Run() error {
 	// create the Controller to be used by the search API handler
 	cancel := a.controller.Start()
 	defer cancel()
@@ -49,7 +49,5 @@ func (a App) Run() {
 	api.RegisterHandler(a.mux, searcher.Searcher(a.controller.Index(), tokenizer.Tokenizer()), a.controller.Store())
 
 	klog.Infoln("Listening on " + a.flags.BindAddress())
-	if err := http.ListenAndServe(a.flags.BindAddress(), a.mux); err != nil {
-		klog.Fatalln(err)
-	}
+	return http.ListenAndServe(a.flags.BindAddress(), a.mux)
 }

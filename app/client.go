@@ -8,7 +8,7 @@ import (
 
 // kubeClientFrom returns Kubernetes client objects
 // (`kubernetes.Clientset`) from the configuration given by `flags`.
-func kubeClientFrom(flags immutableFlags) *kubernetes.Clientset {
+func kubeClientFrom(flags ImmutableFlags) *kubernetes.Clientset {
 	// use the current context in kubeConfig
 	config, err := clientcmd.BuildConfigFromFlags("", flags.KubeConfig())
 

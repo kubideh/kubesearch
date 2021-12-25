@@ -3,21 +3,20 @@ package client
 import (
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/kubideh/kubesearch/search/api"
 )
 
 // Create configures and returns a new Client.
 func Create() Client {
-	flags := newFlags()
+	flags := NewFlags()
 	flags.Parse()
 
 	return New(flags)
 }
 
 // New returns Client objects.
-func New(flags immutableFlags) Client {
+func New(flags ImmutableFlags) Client {
 	return Client{
 		flags: flags,
 	}
@@ -25,7 +24,7 @@ func New(flags immutableFlags) Client {
 
 // Client provides everything needed to run kubectl-search.
 type Client struct {
-	flags immutableFlags
+	flags ImmutableFlags
 }
 
 func (c Client) serverEndpoint() string {
@@ -34,15 +33,12 @@ func (c Client) serverEndpoint() string {
 
 // Run creates a client that uses the given server endpoint to
 // query for Kubernetes objects.
-func (c Client) Run() {
+func (c Client) Run() error {
 	result, err := api.Search(c.serverEndpoint(), query())
 
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-
 	fmt.Println(result)
+
+	return err
 }
 
 func query() string {
