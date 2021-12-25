@@ -8,12 +8,16 @@ import (
 	"github.com/kubideh/kubesearch/search/api"
 )
 
-type Client struct {
-	server *string
+// Create configures and returns a new Client.
+func Create() Client {
+	flags := newFlags()
+	flags.Parse()
+
+	return New(flags)
 }
 
 // New returns Client objects.
-func New() Client {
+func New(flags immutableFlags) Client {
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
 		flag.PrintDefaults()
@@ -22,23 +26,27 @@ func New() Client {
 	}
 
 	return Client{
-		server: flag.String("server", "localhost:8080", "the address and port of the Kubesearch server"),
+		flags: flags,
 	}
+}
+
+// Client provides everything needed to run kubectl-search.
+type Client struct {
+	flags immutableFlags
+}
+
+func (c Client) ServerEndpoint() string {
+	return "http://" + c.flags.Server()
+}
+
+func (c Client) Query() string {
+	return flag.Arg(0)
 }
 
 // Run creates a client that uses the given server endpoint to
 // query for Kubernetes objects.
-func (a Client) Run() {
-	flag.Parse()
-
-	if len(flag.Args()) < 1 {
-		fmt.Fprintln(os.Stderr, "You must specify a query.")
-		fmt.Fprintln(os.Stderr, "")
-		flag.Usage()
-		os.Exit(1)
-	}
-
-	result, err := api.Search("http://"+*a.server, flag.Arg(0))
+func (c Client) Run() {
+	result, err := api.Search(c.ServerEndpoint(), c.Query())
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)

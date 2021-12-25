@@ -7,5 +7,6 @@ import (
 )
 
 func main() {
-	app.Create().Run()
+	anApp := app.Create()
+	anApp.Run()
 }

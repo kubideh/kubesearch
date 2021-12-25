@@ -7,5 +7,6 @@ import (
 )
 
 func main() {
-	client.New().Run()
+	aClient := client.Create()
+	aClient.Run()
 }
