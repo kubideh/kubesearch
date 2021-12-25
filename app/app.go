@@ -1,76 +1,55 @@
 package app
 
 import (
-	"flag"
 	"net/http"
-	"path/filepath"
 
 	"github.com/kubideh/kubesearch/search/searcher"
 	"github.com/kubideh/kubesearch/search/tokenizer"
 
 	"github.com/kubideh/kubesearch/search/api"
 	"github.com/kubideh/kubesearch/search/controller"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 	"k8s.io/klog/v2"
 )
 
+// Create configures and returns a new App.
+func Create() App {
+	flags := newFlags()
+	flags.Parse()
+
+	client := kubeClientFrom(flags)
+
+	aController := controller.New(client)
+
+	return New(flags, aController)
+}
+
 // New returns server App objects.
-func New() App {
+func New(flags immutableFlags, aController *controller.Controller) App {
 	return App{
-		endpoint:   flag.String("bind-address", ":8080", "IP address and port on which to listen"),
-		kubeconfig: kubeconfigFlag(),
+		controller: aController,
+		flags:      flags,
+		mux:        http.NewServeMux(),
 	}
 }
 
-func kubeconfigFlag() (kubeconfig *string) {
-	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-	}
-	return
-}
-
-// App provides everything needed to run kubesearch.
+// App provides everything needed to run KubeSearch.
 type App struct {
-	endpoint   *string
-	kubeconfig *string
+	controller *controller.Controller
+	flags      immutableFlags
+	mux        *http.ServeMux
 }
 
-// Run creates a controller that uses the given kubeconfig to watch
-// for changes to Kubernetes objects, indexes those objects, and
-// provides an API for searching for those objects.
+// Run starts the given Controller and registers the Search API
+// handler.
 func (a App) Run() {
-	flag.Parse()
-
 	// create the Controller to be used by the search API handler
-	aController := controller.New(a.client())
-	cancel := aController.Start()
+	cancel := a.controller.Start()
 	defer cancel()
 
-	mux := http.NewServeMux()
-	api.RegisterHandler(mux, searcher.Searcher(aController.Index(), tokenizer.Tokenizer()), aController.Store())
+	api.RegisterHandler(a.mux, searcher.Searcher(a.controller.Index(), tokenizer.Tokenizer()), a.controller.Store())
 
-	klog.Infoln("Listening on " + *a.endpoint)
-	if err := http.ListenAndServe(*a.endpoint, mux); err != nil {
+	klog.Infoln("Listening on " + a.flags.BindAddress())
+	if err := http.ListenAndServe(a.flags.BindAddress(), a.mux); err != nil {
 		klog.Fatalln(err)
 	}
-}
-
-func (a App) client() *kubernetes.Clientset {
-	// use the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", *a.kubeconfig)
-	if err != nil {
-		klog.Fatalln(err)
-	}
-
-	// create the clientset
-	client, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		klog.Fatalln(err)
-	}
-
-	return client
 }
