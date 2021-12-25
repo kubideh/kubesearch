@@ -8,9 +8,18 @@ import (
 
 // newFlags returns the immutableFlags for Client.
 func newFlags() immutableFlags {
+	flag.Usage = usage
+
 	return immutableFlags{
 		server: flag.String("server", "localhost:8080", "the address and port of the KubeSearch server"),
 	}
+}
+
+func usage() {
+	fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
+	flag.PrintDefaults()
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, "Use \"kubectl search [flags] <query>\".")
 }
 
 // immutableFlags is a collection of flags used to configure the
@@ -33,9 +42,13 @@ func (f immutableFlags) Parse() {
 	flag.Parse()
 
 	if len(flag.Args()) < 1 {
-		fmt.Fprintln(os.Stderr, "You must specify a query.")
-		fmt.Fprintln(os.Stderr, "")
-		flag.Usage()
-		os.Exit(1)
+		printUsageAndExitWithFailure()
 	}
+}
+
+func printUsageAndExitWithFailure() {
+	fmt.Fprintln(os.Stderr, "You must specify a query.")
+	fmt.Fprintln(os.Stderr, "")
+	flag.Usage()
+	os.Exit(1)
 }

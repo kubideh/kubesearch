@@ -48,16 +48,22 @@ func (idx *Index) Put(terms []string, posting Posting) {
 	defer idx.mutex.Unlock()
 
 	for _, t := range terms {
-		postings := idx.index[t]
-
-		if contains(postings, posting) {
-			return
-		}
-
-		postings = append(postings, posting)
-		sort.Sort(PostingsList(postings))
-		idx.index[t] = postings
+		idx.putOne(t, posting)
 	}
+}
+
+func (idx *Index) putOne(term string, posting Posting) {
+	postings := idx.index[term]
+
+	if contains(postings, posting) {
+		return
+	}
+
+	postings = append(postings, posting)
+
+	sort.Sort(PostingsList(postings))
+
+	idx.index[term] = postings
 }
 
 func contains(postings []Posting, item Posting) bool {
