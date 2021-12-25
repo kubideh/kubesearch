@@ -25,10 +25,19 @@ namespace, or labels.
 
 ## Getting started
 
+### Containerized server
 Include steps to pull a container or install a release.
 
 ```console
 ```
+
+### Build client and server from source
+
+```console
+go install ./...
+```
+
+### Pull client and server from homebrew
 
 ## Usage
 
@@ -54,7 +63,7 @@ kubectl search \"nginx:alpine\"
 
 `/v1/search?query=<fulltext query string>` # Search using a phrase query by surrounding the query in `"` (quotes)
 
-## To do
+## To do for v1.0.0
 
 1. Develop a better tokenizer using [ANTLR4](https://github.com/antlr/antlr4/blob/master/doc/go-target.md)
   - Basic alphanumeric segmentation
@@ -64,6 +73,17 @@ kubectl search \"nginx:alpine\"
 4. Support basic ranked retrieval using term frequency
 5. Support phrase-search (searching for exact phrases which may include token separators)
 6. Index annotations, container names, images names, labels, and volume names
-7. Index arbitrary object fields
+7. Index DaemonSets
+8. Index arbitrary fields
 8. Make indexable fields configurable
-9. Use a treap
+9. Index arbitrary resource types
+10. Use a treap
+11. Consider supporting configurable policies in order to control access to the API (OPA)
+12. Consider vector space model for retrieval
+13. Release using homebrew
+
+## To do for v2.0
+
+1. Support kubesearch as an API extension
+2. Add a client that searches using the API extension
+3.
