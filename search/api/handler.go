@@ -5,8 +5,9 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kubideh/kubesearch/search/searcher"
 	"net/http"
+
+	"github.com/kubideh/kubesearch/search/searcher"
 
 	"github.com/kubideh/kubesearch/search/index"
 	appsv1 "k8s.io/api/apps/v1"
@@ -55,6 +56,7 @@ type Result struct {
 	Kind      string `json:"kind,omitempty"`
 	Name      string `json:"name,omitempty"`
 	Namespace string `json:"namespaces,omitempty"`
+	TF        int    `json:"TF"`
 }
 
 func writeResults(writer http.ResponseWriter, objects []Result) {
@@ -85,27 +87,29 @@ func lookupObjects(postings []index.Posting, store map[string]cache.Store) ([]Re
 
 		switch p.Kind {
 		case "Deployment":
-			results = append(results, resultFromDeployment(item.(*appsv1.Deployment)))
+			results = append(results, resultFromDeployment(item.(*appsv1.Deployment), p.Frequency))
 		case "Pod":
-			results = append(results, resultFromPod(item.(*corev1.Pod)))
+			results = append(results, resultFromPod(item.(*corev1.Pod), p.Frequency))
 		}
 	}
 
 	return results, nil
 }
 
-func resultFromDeployment(deployment *appsv1.Deployment) Result {
+func resultFromDeployment(deployment *appsv1.Deployment, termFrequency int) Result {
 	return Result{
 		Kind:      "Deployment",
 		Name:      deployment.GetName(),
 		Namespace: deployment.GetNamespace(),
+		TF:        termFrequency,
 	}
 }
 
-func resultFromPod(pod *corev1.Pod) Result {
+func resultFromPod(pod *corev1.Pod, termFrequency int) Result {
 	return Result{
 		Kind:      "Pod",
 		Name:      pod.GetName(),
 		Namespace: pod.GetNamespace(),
+		TF:        termFrequency,
 	}
 }

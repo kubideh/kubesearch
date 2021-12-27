@@ -40,7 +40,7 @@ func intersect(left, right []index.Posting) (result []index.Posting) {
 
 	for i < len(left) && j < len(right) {
 		if left[i].DocID() == right[j].DocID() {
-			result = append(result, left[i])
+			result = append(result, postingWithLargestTermFrequency(left[i], right[j]))
 			i++
 			j++
 		} else if left[i].DocID() < right[j].DocID() {
@@ -51,4 +51,11 @@ func intersect(left, right []index.Posting) (result []index.Posting) {
 	}
 
 	return
+}
+
+func postingWithLargestTermFrequency(p1, p2 index.Posting) index.Posting {
+	if p1.Frequency < p2.Frequency {
+		return p2
+	}
+	return p1
 }

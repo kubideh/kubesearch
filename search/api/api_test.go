@@ -63,6 +63,7 @@ func TestSearch_queryForSinglePod(t *testing.T) {
 			Kind:      "Pod",
 			Name:      "blargle",
 			Namespace: "flargle",
+			TF:        1,
 		},
 	}, result)
 }
@@ -80,11 +81,13 @@ func TestSearch_queryForAllPodsInNamespace(t *testing.T) {
 			Kind:      "Pod",
 			Name:      "blargle",
 			Namespace: "flargle",
+			TF:        1,
 		},
 		{
 			Kind:      "Pod",
 			Name:      "foo",
 			Namespace: "flargle",
+			TF:        1,
 		},
 	}, result)
 }

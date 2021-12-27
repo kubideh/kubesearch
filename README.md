@@ -65,22 +65,20 @@ kubectl search \"nginx:alpine\"
 
 ## To do for v1.0.0
 
-1. Develop a better tokenizer using [ANTLR4](https://github.com/antlr/antlr4/blob/master/doc/go-target.md)
-  - Basic alphanumeric segmentation
-  - Treat any non-alphanumeric characters as separators
-  - Throw away empty terms
-3. Normalize terms to lowercase
-4. Support basic ranked retrieval using term frequency
-5. Support phrase-search (searching for exact phrases which may include token separators)
-6. Index annotations, container names, images names, labels, and volume names
-7. Index DaemonSets
-8. Index arbitrary fields
-8. Make indexable fields configurable
-9. Index arbitrary resource types
-10. Use a treap
-11. Consider supporting configurable policies in order to control access to the API (OPA)
-12. Consider vector space model for retrieval
-13. Release using homebrew
+1. Develop a better tokenizer
+  - [ANTLR4](https://github.com/antlr/antlr4/blob/master/doc/go-target.md)
+  - [Unicode Text Segmentation] (https://unicode.org/reports/tr29/)
+2. Normalize terms to lowercase
+3. Support phrase-search (searching for exact phrases which may include token separators)
+4. Index annotations, container names, images names, labels, and volume names
+5. Index DaemonSets
+6. Index arbitrary fields
+7. Make indexable fields configurable
+8. Index arbitrary resource types
+9. Use a treap
+10. Consider supporting configurable policies in order to control access to the API (OPA)
+11. Consider vector space model for retrieval
+12. Release using homebrew
 
 ## To do for v2.0
 
