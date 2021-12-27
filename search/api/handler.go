@@ -56,7 +56,7 @@ type Result struct {
 	Kind      string `json:"kind,omitempty"`
 	Name      string `json:"name,omitempty"`
 	Namespace string `json:"namespaces,omitempty"`
-	TF        int    `json:"TF"`
+	Rank      int    `json:"rank,omitempty"`
 }
 
 func writeResults(writer http.ResponseWriter, objects []Result) {
@@ -101,7 +101,7 @@ func resultFromDeployment(deployment *appsv1.Deployment, termFrequency int) Resu
 		Kind:      "Deployment",
 		Name:      deployment.GetName(),
 		Namespace: deployment.GetNamespace(),
-		TF:        termFrequency,
+		Rank:      termFrequency,
 	}
 }
 
@@ -110,6 +110,6 @@ func resultFromPod(pod *corev1.Pod, termFrequency int) Result {
 		Kind:      "Pod",
 		Name:      pod.GetName(),
 		Namespace: pod.GetNamespace(),
-		TF:        termFrequency,
+		Rank:      termFrequency,
 	}
 }
