@@ -67,8 +67,6 @@ kubectl search \"nginx:alpine\"
 ## To do for v1.0.0
 
 1. Develop a better tokenizer
-  - [ANTLR4](https://github.com/antlr/antlr4/blob/master/doc/go-target.md)
-  - [Unicode Text Segmentation] (https://unicode.org/reports/tr29/)
 2. Normalize terms to lowercase
 3. Support phrase-search (searching for exact phrases which may include token separators)
 4. Index annotations, container names, images names, labels, and volume names
@@ -86,3 +84,11 @@ kubectl search \"nginx:alpine\"
 1. Support kubesearch as an API extension
 2. Add a client that searches using the API extension
 3. Consider supporting configurable policies in order to control access to the API (OPA)
+
+## References
+
+* [Introduction to Information Retrieval](https://nlp.stanford.edu/IR-book/information-retrieval-book.html)
+* [Unicode Text Segmentation] (https://unicode.org/reports/tr29/)
+* [ANTLR4](https://github.com/antlr/antlr4/blob/master/doc/go-target.md)
+* [Faster and smaller inverted indices with treaps](https://dl.acm.org/doi/10.1145/2484028.2484088)
+
