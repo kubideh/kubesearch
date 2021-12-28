@@ -9,7 +9,7 @@ kubesearch
 [![codecov](https://codecov.io/gh/kubideh/kubesearch/branch/main/graph/badge.svg?token=YP1EDH6PTH)](https://codecov.io/gh/kubideh/kubesearch)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Kubesearch** is fulltext search for Kubernetes objects.
+**Kubesearch** is fulltext search for Kubernetes.
 
 ## Introduction
 
@@ -18,11 +18,14 @@ kubesearch
 The Kubernetes API supports exact matches in order to lookup API
 objects. For example, the user can fetch a Pod by name or list Pods
 using labels. In both scenarios, the user must know exactly the name
-of the Pod or labels of the Pod.
+of the Pod or labels of the Pod. In all scenarios, the user must
+know exactly the name or labels of any object being searched for.
 
 Kubesearch and the client kubectl-search let the user **search**
 for relevant API objects without having to know the exact name,
-namespace, or labels.
+namespace, or labels. The results are formatted as commands that
+can be copied and executed in order to retrieve the desired API
+object.
 
 ## Getting started
 
@@ -84,6 +87,7 @@ kubectl search \"nginx:alpine\"
 1. Support kubesearch as an API extension
 2. Add a client that searches using the API extension
 3. Consider supporting configurable policies in order to control access to the API (OPA)
+4. Format results of kubectl-search in order to copy and paste the results as an executable command
 
 ## References
 
