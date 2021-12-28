@@ -79,6 +79,7 @@ kubectl search \"nginx:alpine\"
 10. Consider supporting configurable policies in order to control access to the API (OPA)
 11. Consider vector space model for retrieval
 12. Release using homebrew
+13. Metrics
 
 ## To do for v2.0
 
