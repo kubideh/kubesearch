@@ -92,7 +92,7 @@ kubectl search \"nginx:alpine\"
 ## References
 
 * [Introduction to Information Retrieval](https://nlp.stanford.edu/IR-book/information-retrieval-book.html)
-* [Unicode Text Segmentation] (https://unicode.org/reports/tr29/)
+* [Unicode Text Segmentation](https://unicode.org/reports/tr29/)
 * [ANTLR4](https://github.com/antlr/antlr4/blob/master/doc/go-target.md)
 * [Faster and smaller inverted indices with treaps](https://dl.acm.org/doi/10.1145/2484028.2484088)
 
