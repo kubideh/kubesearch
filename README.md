@@ -73,11 +73,10 @@ kubectl search \"nginx:alpine\"
 3. Support phrase-search (searching for exact phrases which may include token separators)
 4. Index annotations, container names, images names, labels, and volume names
 5. Index DaemonSets
-6. Index arbitrary fields
-7. Make indexable fields configurable
+6. Make indexable resource types and fields configurable
+7. Index arbitrary fields
 8. Index arbitrary resource types
 9. Use a treap
-10. Consider supporting configurable policies in order to control access to the API (OPA)
 11. Consider vector space model for retrieval
 12. Release using homebrew
 13. Metrics
@@ -86,4 +85,4 @@ kubectl search \"nginx:alpine\"
 
 1. Support kubesearch as an API extension
 2. Add a client that searches using the API extension
-3.
+3. Consider supporting configurable policies in order to control access to the API (OPA)
