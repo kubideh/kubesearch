@@ -69,18 +69,22 @@ kubectl search \"nginx:alpine\"
 
 ## To do for v1.0.0
 
-1. Develop a better tokenizer
-2. Normalize terms to lowercase
-3. Support phrase-search (searching for exact phrases which may include token separators)
-4. Index annotations, container names, images names, labels, and volume names
-5. Index DaemonSets
-6. Make indexable resource types and fields configurable
-7. Index arbitrary fields
-8. Index arbitrary resource types
-9. Use a treap
-11. Consider vector space model for retrieval
-12. Release using homebrew
-13. Metrics
+1. Upload artifacts
+2. Create an action that downloads artifacts
+3. Run kind and deploy kubesearch
+4. Acceptance tests that verifies everything
+5. Release using homebrew
+6. Metrics
+7. Develop a better tokenizer
+8. Normalize terms to lowercase
+9. Support phrase-search (searching for exact phrases which may include token separators)
+10. Index annotations, container names, images names, labels, and volume names
+11. Index DaemonSets
+12. Make indexable resource types and fields configurable
+13. Index arbitrary fields
+14. Index arbitrary resource types
+15. Use a treap
+16. Consider vector space model for retrieval
 
 ## To do for v2.0
 
