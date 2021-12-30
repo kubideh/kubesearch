@@ -43,15 +43,3 @@ jobs:
           args: release
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
-
-      - name: Upload kubesearch
-        uses: actions/upload-artifact@v2
-        with:
-          name: kubesearch
-          path: /home/runner/work/kubesearch/kubesearch/dist/kubesearch_linux_amd64/kubesearch
-
-      - name: Upload kubectl-search
-        uses: actions/upload-artifact@v2
-        with:
-          name: kubesearch
-          path: /home/runner/work/kubesearch/kubesearch/dist/kubectl-search_linux_amd64/kubectl-search
