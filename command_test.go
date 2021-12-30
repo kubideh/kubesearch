@@ -13,8 +13,10 @@ import (
 )
 
 func TestCommand(t *testing.T) {
-	configureServer(t, ":31337")
-	aClient := configureClient("localhost:31337")
+	const port = "31337"
+
+	configureServer(t, ":"+port)
+	aClient := configureClient("localhost:" + port)
 
 	var clientErr error
 	for i := 1; i <= 3; i++ {
