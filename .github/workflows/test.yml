@@ -31,7 +31,7 @@ jobs:
         uses: engineerd/setup-kind@v0.5.0
 
       - name: Install binaries for testing
-      - run: |
+        run: |
           go install ./... 
 
       - name: View Cluster
