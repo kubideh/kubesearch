@@ -13,18 +13,8 @@ import (
 )
 
 func TestCommand(t *testing.T) {
-	appFlags := app.NewFlagsWithBindAddress(":31337")
-	k8sClient := fake.NewSimpleClientset()
-	aController := controller.New(k8sClient)
-	anApp := app.New(appFlags, aController)
-
-	clientFlags := client.NewFlagsWithServer("localhost:31337")
-	aClient := client.New(clientFlags)
-
-	go func() {
-		err := anApp.Run()
-		require.NoError(t, err)
-	}()
+	configureServer(t, ":31337")
+	aClient := configureClient("localhost:31337")
 
 	var clientErr error
 	for i := 1; i <= 3; i++ {
@@ -38,4 +28,21 @@ func TestCommand(t *testing.T) {
 	}
 
 	assert.NoError(t, clientErr)
+}
+
+func configureServer(t *testing.T, bindAddress string) {
+	appFlags := app.NewFlagsWithBindAddress(bindAddress)
+	k8sClient := fake.NewSimpleClientset()
+	aController := controller.New(k8sClient)
+	anApp := app.New(appFlags, aController)
+
+	go func() {
+		err := anApp.Run()
+		require.NoError(t, err)
+	}()
+}
+
+func configureClient(server string) client.Client {
+	clientFlags := client.NewFlagsWithServer(server)
+	return client.New(clientFlags)
 }
