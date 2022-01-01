@@ -9,7 +9,7 @@ import (
 )
 
 func TestSearch_emptyQuery(t *testing.T) {
-	search := Searcher(index.New(), tokenizer.Tokenizer())
+	search := Create(index.New(), tokenizer.Tokenizer())
 
 	result := search("")
 
@@ -17,7 +17,7 @@ func TestSearch_emptyQuery(t *testing.T) {
 }
 
 func TestSearch_missingObject(t *testing.T) {
-	search := Searcher(index.New(), tokenizer.Tokenizer())
+	search := Create(index.New(), tokenizer.Tokenizer())
 
 	result := search("blargle")
 
@@ -29,7 +29,7 @@ func TestSearch_singleTermMatchesOneObject(t *testing.T) {
 	idx.Put([]string{"blargle"}, index.Posting{Key: "blargle", Kind: "flargle"})
 	idx.Put([]string{"blargle"}, index.Posting{Key: "blargle", Kind: "flargle"})
 
-	search := Searcher(idx, tokenizer.Tokenizer())
+	search := Create(idx, tokenizer.Tokenizer())
 
 	result := search("blargle")
 
@@ -41,7 +41,7 @@ func TestSearch_singleTermMatchesTwoObjects(t *testing.T) {
 	idx.Put([]string{"blargle"}, index.Posting{Key: "blargle", Kind: "flargle"})
 	idx.Put([]string{"blargle"}, index.Posting{Key: "blargle", Kind: "bobble"})
 
-	search := Searcher(idx, tokenizer.Tokenizer())
+	search := Create(idx, tokenizer.Tokenizer())
 
 	result := search("blargle")
 
@@ -56,7 +56,7 @@ func TestSearch_multipleTermsMatchTheSameObject(t *testing.T) {
 	idx.Put([]string{"blargle"}, index.Posting{Key: "flargle/blargle", Kind: "flargle"})
 	idx.Put([]string{"flargle"}, index.Posting{Key: "flargle/blargle", Kind: "flargle"})
 
-	search := Searcher(idx, tokenizer.Tokenizer())
+	search := Create(idx, tokenizer.Tokenizer())
 
 	result := search("blargle flargle")
 
@@ -68,7 +68,7 @@ func TestSearch_multipleTermsInDifferentOrderMatchTheSameObject(t *testing.T) {
 	idx.Put([]string{"blargle"}, index.Posting{Key: "flargle/blargle", Kind: "flargle"})
 	idx.Put([]string{"flargle"}, index.Posting{Key: "flargle/blargle", Kind: "flargle"})
 
-	search := Searcher(idx, tokenizer.Tokenizer())
+	search := Create(idx, tokenizer.Tokenizer())
 
 	result := search("flargle blargle")
 
@@ -83,7 +83,7 @@ func TestSearch_orderedByRankAndDocID(t *testing.T) {
 	idx.Put([]string{"flargle"}, index.Posting{Key: "flargle/bobble", Kind: "flargle"})
 	idx.Put([]string{"flargle"}, index.Posting{Key: "flargle/flargle", Kind: "flargle"})
 
-	search := Searcher(idx, tokenizer.Tokenizer())
+	search := Create(idx, tokenizer.Tokenizer())
 
 	result := search("flargle")
 

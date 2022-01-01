@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/kubideh/kubesearch/search/finder"
 	"github.com/kubideh/kubesearch/search/searcher"
 	"github.com/kubideh/kubesearch/search/tokenizer"
 
@@ -95,11 +96,13 @@ func TestSearch_queryForAllPodsInNamespace(t *testing.T) {
 func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
 	client := fake.NewSimpleClientset()
 
-	aController := controller.New(client)
+	aController := controller.Create(client)
 	cancel := aController.Start()
 
+	objectFinder := finder.Create(aController.Store())
+
 	mux := http.NewServeMux()
-	RegisterHandler(mux, searcher.Searcher(aController.Index(), tokenizer.Tokenizer()), aController.Store())
+	RegisterHandler(mux, searcher.Create(aController.Index(), tokenizer.Tokenizer()), objectFinder)
 
 	server := httptest.NewServer(mux)
 

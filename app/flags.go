@@ -7,20 +7,20 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-// NewFlags returns the ImmutableFlags for App. A list of the flags
-// and their defaults are now given.
+// CreateImmutableServerFlags returns the ImmutableServerFlags for
+// App. A list of the flags and their defaults are now given.
 //
 // -bind-address (default: :8080)
 // -kubeconfig (default $HOME/.kube/config if $HOME is set; empty string otherwise)
-func NewFlags() ImmutableFlags {
-	return NewFlagsWithBindAddress(":8080")
+func CreateImmutableServerFlags() ImmutableServerFlags {
+	return CreateImmutableServerFlagsWithBindAddress(":8080")
 }
 
-// NewFlagsWithBindAddress returns the ImmutableFlags for App, and
-// it uses the given bindAddress as a default value for the flag
-// `-bind-address`.
-func NewFlagsWithBindAddress(bindAddress string) ImmutableFlags {
-	return ImmutableFlags{
+// CreateImmutableServerFlagsWithBindAddress returns the
+// ImmutableServerFlags for App, and it uses the given bindAddress
+// as a default value for the flag `-bind-address`.
+func CreateImmutableServerFlagsWithBindAddress(bindAddress string) ImmutableServerFlags {
+	return ImmutableServerFlags{
 		bindAddress: flag.String("bind-address", bindAddress, "IP address and port on which to listen"),
 		kubeConfig:  kubeConfigFlag(),
 	}
@@ -36,10 +36,10 @@ func kubeConfigFlag() (kubeConfig *string) {
 	return
 }
 
-// ImmutableFlags is a collection of flags used to configure the
-// App. Each flag will be populated with values from the command-
-// line after calling Parse().
-type ImmutableFlags struct {
+// ImmutableServerFlags is a collection of flags used to configure
+// the App. Each flag will be populated with values from the
+// command-line after calling Parse().
+type ImmutableServerFlags struct {
 	bindAddress *string // bindAddress is an address that can be used by `http.ListenAndServe`
 	kubeConfig  *string // kubeConfig is a path string that can be used to create Kubernetes clients
 }
@@ -47,19 +47,19 @@ type ImmutableFlags struct {
 // BindAddress returns an address that can be used by
 // `http.ListenAndServe`, and it's populated by a value from the
 // command-line.
-func (f ImmutableFlags) BindAddress() string {
+func (f ImmutableServerFlags) BindAddress() string {
 	return *f.bindAddress
 }
 
 // KubeConfig returns a path string that can be used to create
 // Kubernetes clients, and it's populated by a value from the
 // command-line.
-func (f ImmutableFlags) KubeConfig() string {
+func (f ImmutableServerFlags) KubeConfig() string {
 	return *f.kubeConfig
 }
 
-// Parse populates this collection of ImmutableFlags with values from the
+// Parse populates this collection of ImmutableServerFlags with values from the
 // command-line.
-func (f ImmutableFlags) Parse() {
+func (f ImmutableServerFlags) Parse() {
 	flag.Parse()
 }

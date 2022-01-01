@@ -4,44 +4,46 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
+	"github.com/kubideh/kubesearch/search/finder"
 	"github.com/kubideh/kubesearch/search/searcher"
 
 	"github.com/kubideh/kubesearch/search/index"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 )
 
 const (
 	endpointPath   = "/v1/search"
-	queryParamName = "query"
+	queryParamName = "queryString"
 )
 
 // RegisterHandler registers the search API handler with the given mux.
-func RegisterHandler(mux *http.ServeMux, search searcher.SearchFunc, store map[string]cache.Store) {
-	mux.HandleFunc(endpointPath, Handler(search, store))
+func RegisterHandler(mux *http.ServeMux, search searcher.SearchFunc, findAll finder.FindAllFunc) {
+	mux.HandleFunc(endpointPath, Handler(search, findAll))
 }
 
-// Handler is an http.HandlerFunc that responds with query results.
-func Handler(search searcher.SearchFunc, store map[string]cache.Store) func(http.ResponseWriter, *http.Request) {
+// Handler is a `http.HandlerFunc` that responds with queryString
+// results.
+func Handler(search searcher.SearchFunc, findAll finder.FindAllFunc) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		postings := search(query(request))
+		postings := search(queryString(request))
 
-		objects, err := lookupObjects(postings, store)
+		objects, err := findAll(postings)
 
 		if err != nil {
 			klog.Errorln(err)
 		}
 
-		writeResults(writer, objects)
+		results := transformObjectsIntoResults(objects)
+
+		writeResults(writer, results)
 	}
 }
 
-func query(request *http.Request) string {
+func queryString(request *http.Request) string {
 	values, ok := request.URL.Query()[queryParamName]
 
 	if !ok || len(values) == 0 {
@@ -69,34 +71,26 @@ func writeResults(writer http.ResponseWriter, objects []Result) {
 	}
 }
 
-func lookupObjects(postings []index.Posting, store map[string]cache.Store) ([]Result, error) {
-	var results []Result
-
-	for _, p := range postings {
-		item, exists, err := store[p.Kind].GetByKey(p.Key)
-
-		if err != nil {
-			return results, err
-		}
-
-		if !exists {
-			return results, fmt.Errorf("missing object for key %v", p.Key)
-		}
-
-		// XXX Refactor this to make it dynamic; not dependent on Kind.
-
-		switch p.Kind {
-		case "Deployment":
-			results = append(results, resultFromDeployment(item.(*appsv1.Deployment), p.Frequency))
-		case "Pod":
-			results = append(results, resultFromPod(item.(*corev1.Pod), p.Frequency))
-		}
+// XXX everything below this line should be made into a data mapper.
+func transformObjectsIntoResults(objects []finder.Object) (results []Result) {
+	for _, o := range objects {
+		results = append(results, createResult(o.Item, o.Posting))
 	}
-
-	return results, nil
+	return
 }
 
-func resultFromDeployment(deployment *appsv1.Deployment, termFrequency int) Result {
+func createResult(item interface{}, posting index.Posting) (result Result) {
+	switch posting.Kind {
+	case "Deployment":
+		result = createResultFromDeployment(item.(*appsv1.Deployment), posting.Frequency)
+	case "Pod":
+		result = createResultFromPod(item.(*corev1.Pod), posting.Frequency)
+	}
+
+	return
+}
+
+func createResultFromDeployment(deployment *appsv1.Deployment, termFrequency int) Result {
 	return Result{
 		Kind:      "Deployment",
 		Name:      deployment.GetName(),
@@ -105,7 +99,7 @@ func resultFromDeployment(deployment *appsv1.Deployment, termFrequency int) Resu
 	}
 }
 
-func resultFromPod(pod *corev1.Pod, termFrequency int) Result {
+func createResultFromPod(pod *corev1.Pod, termFrequency int) Result {
 	return Result{
 		Kind:      "Pod",
 		Name:      pod.GetName(),

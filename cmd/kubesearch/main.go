@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	anApp := app.Create()
+	anApp := app.CreateDefault()
 
 	if err := anApp.Run(); err != nil {
 		klog.Fatalln(err)

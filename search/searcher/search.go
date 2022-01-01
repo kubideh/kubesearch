@@ -8,8 +8,8 @@ import (
 // SearchFunc is a basic search function.
 type SearchFunc func(query string) []index.Posting
 
-// Searcher returns the default search functor.
-func Searcher(idx *index.Index, tokenize tokenizer.TokenizeFunc) SearchFunc {
+// Create returns the default search functor.
+func Create(idx *index.Index, tokenize tokenizer.TokenizeFunc) SearchFunc {
 	return func(query string) []index.Posting {
 		terms := tokenize(query)
 		//sort.Strings(terms)

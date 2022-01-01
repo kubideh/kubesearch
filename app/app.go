@@ -3,6 +3,7 @@ package app
 import (
 	"net/http"
 
+	"github.com/kubideh/kubesearch/search/finder"
 	"github.com/kubideh/kubesearch/search/searcher"
 	"github.com/kubideh/kubesearch/search/tokenizer"
 
@@ -11,20 +12,20 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// Create configures and returns a new App.
-func Create() App {
-	flags := NewFlags()
+// CreateDefault configures and returns a new App.
+func CreateDefault() App {
+	flags := CreateImmutableServerFlags()
 	flags.Parse()
 
-	client := kubeClientFrom(flags)
+	client := createKubernetesClientset(flags)
 
-	aController := controller.New(client)
+	aController := controller.Create(client)
 
-	return New(flags, aController)
+	return CreateFromFlagsAndController(flags, aController)
 }
 
-// New returns server App objects.
-func New(flags ImmutableFlags, aController *controller.Controller) App {
+// CreateFromFlagsAndController returns server App objects.
+func CreateFromFlagsAndController(flags ImmutableServerFlags, aController *controller.Controller) App {
 	return App{
 		controller: aController,
 		flags:      flags,
@@ -35,7 +36,7 @@ func New(flags ImmutableFlags, aController *controller.Controller) App {
 // App provides everything needed to run KubeSearch.
 type App struct {
 	controller *controller.Controller
-	flags      ImmutableFlags
+	flags      ImmutableServerFlags
 	mux        *http.ServeMux
 }
 
@@ -46,7 +47,7 @@ func (a App) Run() error {
 	cancel := a.controller.Start()
 	defer cancel()
 
-	api.RegisterHandler(a.mux, searcher.Searcher(a.controller.Index(), tokenizer.Tokenizer()), a.controller.Store())
+	api.RegisterHandler(a.mux, searcher.Create(a.controller.Index(), tokenizer.Tokenizer()), finder.Create(a.controller.Store()))
 
 	klog.Infoln("Listening on " + a.flags.BindAddress())
 	return http.ListenAndServe(a.flags.BindAddress(), a.mux)

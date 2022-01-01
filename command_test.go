@@ -15,8 +15,10 @@ import (
 func TestCommand(t *testing.T) {
 	const port = "31337"
 
-	configureServer(t, ":"+port)
-	aClient := configureClient("localhost:" + port)
+	anApp := createServer(":" + port)
+	startServer(t, anApp)
+
+	aClient := createClient("localhost:" + port)
 
 	var clientErr error
 	for i := 1; i <= 3; i++ {
@@ -32,19 +34,22 @@ func TestCommand(t *testing.T) {
 	assert.NoError(t, clientErr)
 }
 
-func configureServer(t *testing.T, bindAddress string) {
-	appFlags := app.NewFlagsWithBindAddress(bindAddress)
+func createServer(bindAddress string) app.App {
+	appFlags := app.CreateImmutableServerFlagsWithBindAddress(bindAddress)
 	k8sClient := fake.NewSimpleClientset()
-	aController := controller.New(k8sClient)
-	anApp := app.New(appFlags, aController)
+	aController := controller.Create(k8sClient)
+	anApp := app.CreateFromFlagsAndController(appFlags, aController)
+	return anApp
+}
 
+func startServer(t *testing.T, anApp app.App) {
 	go func() {
 		err := anApp.Run()
 		require.NoError(t, err)
 	}()
 }
 
-func configureClient(server string) client.Client {
-	clientFlags := client.NewFlagsWithServer(server)
-	return client.New(clientFlags)
+func createClient(server string) client.Client {
+	clientFlags := client.CreateImmutableClientFlagsWithServerAddress(server)
+	return client.CreateFromFlags(clientFlags)
 }

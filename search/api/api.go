@@ -10,28 +10,24 @@ import (
 	"net/url"
 )
 
-// Search is the API used to query for Kubernetes objects.
-func Search(endpoint, query string) ([]Result, error) {
+// Search is the API used to queryString for Kubernetes objects.
+func Search(endpoint, query string) (result []Result, err error) {
 	response, err := http.Get(searchURL(endpoint, query))
 
 	if err != nil {
-		return []Result{}, err
+		return
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
-
 	defer response.Body.Close()
 
 	if err != nil {
-		return []Result{}, err
+		return
 	}
 
-	var result []Result
-	if err := json.Unmarshal(body, &result); err != nil {
-		return []Result{}, err
-	}
+	err = json.Unmarshal(body, &result)
 
-	return result, nil
+	return
 }
 
 func searchURL(endpoint, query string) string {

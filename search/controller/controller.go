@@ -24,8 +24,8 @@ type Controller struct {
 	tokenizer       tokenizer.TokenizeFunc
 }
 
-// New returns Controller objects.
-func New(client kubernetes.Interface) *Controller {
+// Create returns Controller objects.
+func Create(client kubernetes.Interface) *Controller {
 	factory := informers.NewSharedInformerFactory(client, 0)
 
 	// XXX Support the creation of informers by the caller.
