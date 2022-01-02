@@ -24,14 +24,14 @@ func Create(store map[string]cache.Store) FindAllFunc {
 		var results []Object
 
 		for _, p := range postings {
-			item, exists, err := findOne(store, p.Kind, p.Key)
+			item, exists, err := findOne(store, p.K8sResourceKind, p.StoredObjectKey)
 
 			if err != nil {
 				return results, err
 			}
 
 			if !exists {
-				return results, fmt.Errorf("missing object for key %v", p.Key)
+				return results, fmt.Errorf("missing object for key %v", p.StoredObjectKey)
 			}
 
 			results = append(results, Object{Posting: p, Item: item})

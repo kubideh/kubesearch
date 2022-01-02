@@ -5,36 +5,48 @@ import (
 	"strings"
 )
 
-// Posting represents an object Key, the kind of object the ID
-// references, and a term Frequency.
+// Posting represents a stored object key, what kind of K8s resource
+// that object is, and a frequency of the number of times a
+// particular term was found in that object.
 type Posting struct {
-	Key       string
-	Kind      string
-	Frequency int
+	StoredObjectKey string
+	K8sResourceKind string
+	TermFrequency   int
+}
+
+// DocID wraps the document ID of a particular Posting, and it has
+// the form <kind>/<namespace>/<objectID>.
+type DocID struct {
+	id string
+}
+
+func (d DocID) String() string {
+	return d.id
 }
 
 // DocID is the document identifier, and it's a string with the
-// form <Kind>/<Optional namespace>/<Object name>.
-func (p Posting) DocID() string {
-	return fmt.Sprintf("%s/%s", p.Kind, p.Key)
+// form <K8sResourceKind>/<Optional namespace>/<Object name>.
+func (p Posting) DocID() DocID {
+	return DocID{id: fmt.Sprintf("%s/%s", p.K8sResourceKind, p.StoredObjectKey)}
 }
 
-// TermFrequency returns the number of times term appears in the
-// given Posting.
-func (p Posting) TermFrequency(term string) int {
+// ComputeTermFrequency returns the number of times term appears in
+// the given Posting.
+func (p Posting) ComputeTermFrequency(term string) int {
 	result := 0
 
-	if p.Kind == term {
+	if p.K8sResourceKind == term {
 		result++
 	}
 
-	result += strings.Count(p.Key, term) // XXX: this will break unless the Key is split properly
+	result += strings.Count(p.StoredObjectKey, term) // XXX: this will break unless the StoredObjectKey is split properly
 
 	return result
 }
 
-// PostingsList is a list of Posting objects. When used in an index,
-// the list is sorted by Frequency and then DocID.
+// PostingsList is a list of Posting objects. When used in an
+// index, the list is sorted by largest TermFrequency and then
+// DocID.
 type PostingsList []Posting
 
 func (p PostingsList) Len() int {
@@ -46,8 +58,8 @@ func (p PostingsList) Swap(i, j int) {
 }
 
 func (p PostingsList) Less(i, j int) bool {
-	if p[i].Frequency == p[j].Frequency {
-		return p[i].DocID() < p[j].DocID()
+	if p[i].TermFrequency == p[j].TermFrequency {
+		return p[i].DocID().String() < p[j].DocID().String()
 	}
-	return p[j].Frequency < p[i].Frequency // Large TF (term frequency) should come before small TF
+	return p[j].TermFrequency < p[i].TermFrequency // Large TF (term frequency) should come before small TF
 }

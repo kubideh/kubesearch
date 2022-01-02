@@ -88,10 +88,10 @@ func indexObjects(queue workqueue.RateLimitingInterface, idx *index.Index, token
 
 	for !shutdown {
 		if namespace(key) != "" {
-			idx.Put(tokenize(namespace(key)), index.Posting{Key: keyString(key), Kind: kind})
+			idx.Put(tokenize(namespace(key)), index.Posting{StoredObjectKey: keyString(key), K8sResourceKind: kind})
 		}
 
-		idx.Put(tokenize(name(key)), index.Posting{Key: keyString(key), Kind: kind})
+		idx.Put(tokenize(name(key)), index.Posting{StoredObjectKey: keyString(key), K8sResourceKind: kind})
 
 		// XXX Support indexing annotations and labels
 

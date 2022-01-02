@@ -9,11 +9,11 @@ import (
 
 func TestTermFrequency(t *testing.T) {
 	posting := Posting{
-		Key:  "flargle/blargle",
-		Kind: "flargle",
+		StoredObjectKey: "flargle/blargle",
+		K8sResourceKind: "flargle",
 	}
 
-	computed := posting.TermFrequency("flargle")
+	computed := posting.ComputeTermFrequency("flargle")
 
 	assert.Equal(t, 2, computed)
 }
@@ -21,19 +21,19 @@ func TestTermFrequency(t *testing.T) {
 func TestSortPostings(t *testing.T) {
 	postings := []Posting{
 		{
-			Key:       "flargle/bobble",
-			Kind:      "flargle",
-			Frequency: 2,
+			StoredObjectKey: "flargle/bobble",
+			K8sResourceKind: "flargle",
+			TermFrequency:   2,
 		},
 		{
-			Key:       "flargle/blargle",
-			Kind:      "flargle",
-			Frequency: 2,
+			StoredObjectKey: "flargle/blargle",
+			K8sResourceKind: "flargle",
+			TermFrequency:   2,
 		},
 		{
-			Key:       "flargle/flargle",
-			Kind:      "flargle",
-			Frequency: 3,
+			StoredObjectKey: "flargle/flargle",
+			K8sResourceKind: "flargle",
+			TermFrequency:   3,
 		},
 	}
 
@@ -41,19 +41,19 @@ func TestSortPostings(t *testing.T) {
 
 	expected := []Posting{
 		{
-			Key:       "flargle/flargle",
-			Kind:      "flargle",
-			Frequency: 3,
+			StoredObjectKey: "flargle/flargle",
+			K8sResourceKind: "flargle",
+			TermFrequency:   3,
 		},
 		{
-			Key:       "flargle/blargle",
-			Kind:      "flargle",
-			Frequency: 2,
+			StoredObjectKey: "flargle/blargle",
+			K8sResourceKind: "flargle",
+			TermFrequency:   2,
 		},
 		{
-			Key:       "flargle/bobble",
-			Kind:      "flargle",
-			Frequency: 2,
+			StoredObjectKey: "flargle/bobble",
+			K8sResourceKind: "flargle",
+			TermFrequency:   2,
 		},
 	}
 

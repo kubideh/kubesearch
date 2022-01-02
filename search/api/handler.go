@@ -80,11 +80,11 @@ func transformObjectsIntoResults(objects []finder.Object) (results []Result) {
 }
 
 func createResult(item interface{}, posting index.Posting) (result Result) {
-	switch posting.Kind {
+	switch posting.K8sResourceKind {
 	case "Deployment":
-		result = createResultFromDeployment(item.(*appsv1.Deployment), posting.Frequency)
+		result = createResultFromDeployment(item.(*appsv1.Deployment), posting.TermFrequency)
 	case "Pod":
-		result = createResultFromPod(item.(*corev1.Pod), posting.Frequency)
+		result = createResultFromPod(item.(*corev1.Pod), posting.TermFrequency)
 	}
 
 	return

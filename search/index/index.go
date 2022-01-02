@@ -31,7 +31,7 @@ func (idx *Index) putOne(term string, posting Posting) {
 		return
 	}
 
-	posting.Frequency = posting.TermFrequency(term)
+	posting.TermFrequency = posting.ComputeTermFrequency(term)
 	postings = append(postings, posting)
 
 	sort.Sort(PostingsList(postings))
