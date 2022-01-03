@@ -3,38 +3,42 @@ package finder
 import (
 	"fmt"
 
-	"github.com/kubideh/kubesearch/search/index"
 	"k8s.io/client-go/tools/cache"
 )
 
 // XXX This finder is actually a Gateway. Maybe refactor into Active Records.s
 
-// Object is a (Posting, Item) pair.
+// Object is a (Key, Item) pair.
 type Object struct {
-	Posting index.Posting
-	Item    interface{}
+	Key  Key
+	Item interface{}
 }
 
-type FindAllFunc func(postings []index.Posting) ([]Object, error)
+type Key struct {
+	StoredObjectKey string
+	K8sResourceKind string
+}
+
+type FindAllFunc func(keys []Key) ([]Object, error)
 
 // Create returns the default functor that finds all objects for
 // the given Kubernetes object store `store`.
 func Create(store map[string]cache.Store) FindAllFunc {
-	return func(postings []index.Posting) ([]Object, error) {
+	return func(keys []Key) ([]Object, error) {
 		var results []Object
 
-		for _, p := range postings {
-			item, exists, err := findOne(store, p.K8sResourceKind, p.StoredObjectKey)
+		for _, k := range keys {
+			item, exists, err := findOne(store, k.K8sResourceKind, k.StoredObjectKey)
 
 			if err != nil {
 				return results, err
 			}
 
 			if !exists {
-				return results, fmt.Errorf("missing object for key %v", p.StoredObjectKey)
+				return results, fmt.Errorf("missing object for key %v", k.StoredObjectKey)
 			}
 
-			results = append(results, Object{Posting: p, Item: item})
+			results = append(results, Object{Key: k, Item: item})
 		}
 
 		return results, nil
