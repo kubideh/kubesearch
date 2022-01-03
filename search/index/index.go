@@ -57,8 +57,8 @@ func (idx *Index) Get(term string) []Posting {
 	return idx.index[term]
 }
 
-// New returns InvertedIndex objects.
-func New() *Index {
+// Create returns InvertedIndex objects.
+func Create() *Index {
 	return &Index{
 		index: make(map[string][]Posting),
 	}

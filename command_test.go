@@ -38,7 +38,7 @@ func createServer(bindAddress string) app.App {
 	appFlags := app.CreateImmutableServerFlagsWithBindAddress(bindAddress)
 	k8sClient := fake.NewSimpleClientset()
 	aController := controller.Create(k8sClient)
-	anApp := app.CreateFromFlagsAndController(appFlags, aController)
+	anApp := app.Create(appFlags, aController)
 	return anApp
 }
 
@@ -51,5 +51,5 @@ func startServer(t *testing.T, anApp app.App) {
 
 func createClient(server string) client.Client {
 	clientFlags := client.CreateImmutableClientFlagsWithServerAddress(server)
-	return client.CreateFromFlags(clientFlags)
+	return client.Create(clientFlags)
 }

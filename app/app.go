@@ -12,8 +12,8 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// CreateDefault configures and returns a new App.
-func CreateDefault() App {
+// ConfigureDefault configures and returns a new App.
+func ConfigureDefault() App {
 	flags := CreateImmutableServerFlags()
 	flags.Parse()
 
@@ -21,15 +21,22 @@ func CreateDefault() App {
 
 	aController := controller.Create(client)
 
-	return CreateFromFlagsAndController(flags, aController)
+	return Create(flags, aController)
 }
 
-// CreateFromFlagsAndController returns server App objects.
-func CreateFromFlagsAndController(flags ImmutableServerFlags, aController *controller.Controller) App {
+// Create returns server App objects.
+func Create(flags ImmutableServerFlags, aController *controller.Controller) App {
+	aTokenizer := tokenizer.Tokenizer()
+	aSearcher := searcher.Create(aController.Index(), aTokenizer)
+	aFinder := finder.Create(aController.Store())
+	aHandler := api.CreateSearchHandler(aSearcher, aFinder)
+	aMux := http.NewServeMux()
+
 	return App{
 		controller: aController,
 		flags:      flags,
-		mux:        http.NewServeMux(),
+		handler:    aHandler,
+		mux:        aMux,
 	}
 }
 
@@ -37,6 +44,7 @@ func CreateFromFlagsAndController(flags ImmutableServerFlags, aController *contr
 type App struct {
 	controller *controller.Controller
 	flags      ImmutableServerFlags
+	handler    http.HandlerFunc
 	mux        *http.ServeMux
 }
 
@@ -47,7 +55,7 @@ func (a App) Run() error {
 	cancel := a.controller.Start()
 	defer cancel()
 
-	api.RegisterHandler(a.mux, searcher.Create(a.controller.Index(), tokenizer.Tokenizer()), finder.Create(a.controller.Store()))
+	api.RegisterSearchHandler(a.mux, a.handler)
 
 	klog.Infoln("Listening on " + a.flags.BindAddress())
 	return http.ListenAndServe(a.flags.BindAddress(), a.mux)

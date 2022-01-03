@@ -17,18 +17,19 @@ const (
 	queryParamName = "queryString"
 )
 
-// RegisterHandler registers the search API handler with the given mux.
-func RegisterHandler(mux *http.ServeMux, search searcher.SearchFunc, findAll finder.FindAllFunc) {
-	mux.HandleFunc(endpointPath, Handler(search, findAll))
+// RegisterSearchHandler registers the search API handler with the given mux
+// at the appropriate endpoint path.
+func RegisterSearchHandler(mux *http.ServeMux, handler http.HandlerFunc) {
+	mux.HandleFunc(endpointPath, handler)
 }
 
-// Handler is a `http.HandlerFunc` that responds with a list of
-// JSON-encoded results based on the given query string.
-func Handler(search searcher.SearchFunc, findAll finder.FindAllFunc) func(http.ResponseWriter, *http.Request) {
+// CreateSearchHandler is a `http.HandlerFunc` that responds with a
+// list of JSON-encoded results based on the given query string.
+func CreateSearchHandler(search searcher.SearchFunc, findAll finder.FindAllFunc) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		postings := search(queryString(request))
 
-		keys := keysFromPostings(postings)
+		keys := createKeysFromPostings(postings)
 		objects, err := findAll(keys)
 
 		if err != nil {
@@ -50,18 +51,23 @@ func queryString(request *http.Request) string {
 	return values[0]
 }
 
-func keysFromPostings(postings []index.Posting) []finder.Key {
+func createKeysFromPostings(postings []index.Posting) []finder.Key {
 	keys := make([]finder.Key, 0, len(postings))
 
 	for _, p := range postings {
-		key := keyFromPosting(p)
-		keys = append(keys, key)
+		keys = appendPostingAsKey(keys, p)
 	}
 
 	return keys
 }
 
-func keyFromPosting(p index.Posting) finder.Key {
+func appendPostingAsKey(keys []finder.Key, posting index.Posting) (result []finder.Key) {
+	key := createKeyFromPosting(posting)
+	result = append(keys, key)
+	return
+}
+
+func createKeyFromPosting(p index.Posting) finder.Key {
 	return finder.Key{
 		StoredObjectKey: p.StoredObjectKey,
 		K8sResourceKind: p.K8sResourceKind,

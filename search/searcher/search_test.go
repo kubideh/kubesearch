@@ -9,7 +9,7 @@ import (
 )
 
 func TestSearch_emptyQuery(t *testing.T) {
-	search := Create(index.New(), tokenizer.Tokenizer())
+	search := Create(index.Create(), tokenizer.Tokenizer())
 
 	result := search("")
 
@@ -17,7 +17,7 @@ func TestSearch_emptyQuery(t *testing.T) {
 }
 
 func TestSearch_missingObject(t *testing.T) {
-	search := Create(index.New(), tokenizer.Tokenizer())
+	search := Create(index.Create(), tokenizer.Tokenizer())
 
 	result := search("blargle")
 
@@ -25,7 +25,7 @@ func TestSearch_missingObject(t *testing.T) {
 }
 
 func TestSearch_singleTermMatchesOneObject(t *testing.T) {
-	idx := index.New()
+	idx := index.Create()
 	idx.Put([]string{"blargle"}, index.Posting{StoredObjectKey: "blargle", K8sResourceKind: "flargle"})
 	idx.Put([]string{"blargle"}, index.Posting{StoredObjectKey: "blargle", K8sResourceKind: "flargle"})
 
@@ -37,7 +37,7 @@ func TestSearch_singleTermMatchesOneObject(t *testing.T) {
 }
 
 func TestSearch_singleTermMatchesTwoObjects(t *testing.T) {
-	idx := index.New()
+	idx := index.Create()
 	idx.Put([]string{"blargle"}, index.Posting{StoredObjectKey: "blargle", K8sResourceKind: "flargle"})
 	idx.Put([]string{"blargle"}, index.Posting{StoredObjectKey: "blargle", K8sResourceKind: "bobble"})
 
@@ -52,7 +52,7 @@ func TestSearch_singleTermMatchesTwoObjects(t *testing.T) {
 }
 
 func TestSearch_multipleTermsMatchTheSameObject(t *testing.T) {
-	idx := index.New()
+	idx := index.Create()
 	idx.Put([]string{"blargle"}, index.Posting{StoredObjectKey: "flargle/blargle", K8sResourceKind: "flargle"})
 	idx.Put([]string{"flargle"}, index.Posting{StoredObjectKey: "flargle/blargle", K8sResourceKind: "flargle"})
 
@@ -64,7 +64,7 @@ func TestSearch_multipleTermsMatchTheSameObject(t *testing.T) {
 }
 
 func TestSearch_multipleTermsInDifferentOrderMatchTheSameObject(t *testing.T) {
-	idx := index.New()
+	idx := index.Create()
 	idx.Put([]string{"blargle"}, index.Posting{StoredObjectKey: "flargle/blargle", K8sResourceKind: "flargle"})
 	idx.Put([]string{"flargle"}, index.Posting{StoredObjectKey: "flargle/blargle", K8sResourceKind: "flargle"})
 
@@ -76,7 +76,7 @@ func TestSearch_multipleTermsInDifferentOrderMatchTheSameObject(t *testing.T) {
 }
 
 func TestSearch_orderedByRankAndDocID(t *testing.T) {
-	idx := index.New()
+	idx := index.Create()
 	idx.Put([]string{"blargle"}, index.Posting{StoredObjectKey: "flargle/blargle", K8sResourceKind: "flargle"})
 	idx.Put([]string{"flargle"}, index.Posting{StoredObjectKey: "flargle/blargle", K8sResourceKind: "flargle"})
 	idx.Put([]string{"bobble"}, index.Posting{StoredObjectKey: "flargle/bobble", K8sResourceKind: "flargle"})

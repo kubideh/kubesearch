@@ -99,10 +99,13 @@ func setup(t *testing.T) (*httptest.Server, context.CancelFunc) {
 	aController := controller.Create(client)
 	cancel := aController.Start()
 
+	aTokenizer := tokenizer.Tokenizer()
+	aSearcher := searcher.Create(aController.Index(), aTokenizer)
 	objectFinder := finder.Create(aController.Store())
-
+	handler := CreateSearchHandler(aSearcher, objectFinder)
 	mux := http.NewServeMux()
-	RegisterHandler(mux, searcher.Create(aController.Index(), tokenizer.Tokenizer()), objectFinder)
+
+	RegisterSearchHandler(mux, handler)
 
 	server := httptest.NewServer(mux)
 

@@ -25,6 +25,8 @@ func Create(idx *index.Index, tokenize tokenizer.TokenizeFunc) SearchFunc {
 	}
 }
 
+// intersect returns the set-intersection (conjunction) of the two
+// given sorted lists of Postings.
 func intersect(left, right []index.Posting) (result []index.Posting) {
 
 	if len(left) == 0 {

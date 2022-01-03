@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	aClient := client.CreateDefault()
+	aClient := client.ConfigureDefault()
 
 	if err := aClient.Run(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

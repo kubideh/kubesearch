@@ -7,16 +7,16 @@ import (
 	"github.com/kubideh/kubesearch/search/api"
 )
 
-// CreateDefault configures and returns a new Client.
-func CreateDefault() Client {
+// ConfigureDefault configures and returns a new Client.
+func ConfigureDefault() Client {
 	flags := CreateImmutableClientFlags()
 	flags.Parse()
 
-	return CreateFromFlags(flags)
+	return Create(flags)
 }
 
-// CreateFromFlags returns Client objects.
-func CreateFromFlags(flags ImmutableClientFlags) Client {
+// Create returns Client objects.
+func Create(flags ImmutableClientFlags) Client {
 	return Client{
 		flags: flags,
 	}

@@ -8,8 +8,8 @@ import (
 
 // XXX This finder is actually a Gateway. Maybe refactor into Active Records.s
 
-// Object is a (Key, Item) pair.
-type Object struct {
+// K8sObject is a (Key, Item) pair.
+type K8sObject struct {
 	Key  Key
 	Item interface{}
 }
@@ -19,13 +19,13 @@ type Key struct {
 	K8sResourceKind string
 }
 
-type FindAllFunc func(keys []Key) ([]Object, error)
+type FindAllFunc func(keys []Key) ([]K8sObject, error)
 
 // Create returns the default functor that finds all objects for
 // the given Kubernetes object store `store`.
 func Create(store map[string]cache.Store) FindAllFunc {
-	return func(keys []Key) ([]Object, error) {
-		var results []Object
+	return func(keys []Key) ([]K8sObject, error) {
+		var results []K8sObject
 
 		for _, k := range keys {
 			item, exists, err := findOne(store, k.K8sResourceKind, k.StoredObjectKey)
@@ -35,10 +35,16 @@ func Create(store map[string]cache.Store) FindAllFunc {
 			}
 
 			if !exists {
+				// XXX: Ignore because the object might have been deleted.
 				return results, fmt.Errorf("missing object for key %v", k.StoredObjectKey)
 			}
 
-			results = append(results, Object{Key: k, Item: item})
+			object := K8sObject{
+				Key:  k,
+				Item: item,
+			}
+
+			results = append(results, object)
 		}
 
 		return results, nil

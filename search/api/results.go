@@ -15,7 +15,7 @@ type Result struct {
 	Rank      int    `json:"rank,omitempty"`
 }
 
-func createResults(objects []finder.Object, postings []index.Posting) (results []Result) {
+func createResults(objects []finder.K8sObject, postings []index.Posting) (results []Result) {
 	for i, o := range objects {
 		results = append(results, createResult(postings[i].K8sResourceKind, o.Item, postings[i].TermFrequency))
 	}
@@ -23,6 +23,7 @@ func createResults(objects []finder.Object, postings []index.Posting) (results [
 }
 
 func createResult(k8sResourceKind string, item interface{}, termFrequency int) (result Result) {
+	// XXX: Add support for DaemonSet, then refactor.
 	switch k8sResourceKind {
 	case "Deployment":
 		result = createResultFromDeployment(item.(*appsv1.Deployment), termFrequency)

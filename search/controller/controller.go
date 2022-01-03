@@ -31,7 +31,7 @@ func Create(client kubernetes.Interface) *Controller {
 	// XXX Support the creation of informers by the caller.
 
 	return &Controller{
-		index:           index.New(),
+		index:           index.Create(),
 		informerFactory: factory,
 		informers: map[string]informerWorkqueuePair{
 			"Deployment": bindInformerToNewWorkqueue(factory.Apps().V1().Deployments().Informer(), "Deployment-queue"),
