@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/kubideh/kubesearch/app"
+	"github.com/kubideh/kubesearch/cmd/kubesearch/app"
 	"k8s.io/klog/v2"
 )
 

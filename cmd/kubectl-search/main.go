@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kubideh/kubesearch/client"
+	"github.com/kubideh/kubesearch/cmd/kubectl-search/client"
 )
 
 func main() {

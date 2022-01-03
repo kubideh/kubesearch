@@ -1,11 +1,11 @@
-package main
+package cmd
 
 import (
 	"testing"
 	"time"
 
-	"github.com/kubideh/kubesearch/app"
-	"github.com/kubideh/kubesearch/client"
+	client2 "github.com/kubideh/kubesearch/cmd/kubectl-search/client"
+	app2 "github.com/kubideh/kubesearch/cmd/kubesearch/app"
 	"github.com/kubideh/kubesearch/search/controller"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,22 +34,22 @@ func TestCommand(t *testing.T) {
 	assert.NoError(t, clientErr)
 }
 
-func createServer(bindAddress string) app.App {
-	appFlags := app.CreateImmutableServerFlagsWithBindAddress(bindAddress)
+func createServer(bindAddress string) app2.App {
+	appFlags := app2.CreateImmutableServerFlagsWithBindAddress(bindAddress)
 	k8sClient := fake.NewSimpleClientset()
 	aController := controller.Create(k8sClient)
-	anApp := app.Create(appFlags, aController)
+	anApp := app2.Create(appFlags, aController)
 	return anApp
 }
 
-func startServer(t *testing.T, anApp app.App) {
+func startServer(t *testing.T, anApp app2.App) {
 	go func() {
 		err := anApp.Run()
 		require.NoError(t, err)
 	}()
 }
 
-func createClient(server string) client.Client {
-	clientFlags := client.CreateImmutableClientFlagsWithServerAddress(server)
-	return client.Create(clientFlags)
+func createClient(server string) client2.Client {
+	clientFlags := client2.CreateImmutableClientFlagsWithServerAddress(server)
+	return client2.Create(clientFlags)
 }
